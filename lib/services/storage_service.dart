@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../config/api_config.dart';
 import '../models/user_model.dart';
 
 class StorageService {
@@ -37,7 +38,7 @@ class StorageService {
     final prefs = await SharedPreferences.getInstance();
     final url = prefs.getString(_keyBaseUrl);
     if (url == null || url.isEmpty || url.contains('127.0.0.1') || url.contains('localhost')) {
-      return 'https://mihan-backend-production.up.railway.app';
+      return ApiConfig.baseUrl;
     }
     return url;
   }
