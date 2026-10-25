@@ -140,23 +140,23 @@ class CustomButton extends StatelessWidget {
       width: double.infinity,
       height: height,
       decoration: BoxDecoration(
-        color: effectiveGradient == null ? (backgroundColor ?? AppTheme.secondary) : null,
+        color: effectiveGradient == null ? (backgroundColor ?? AppTheme.primary) : null,
         gradient: effectiveGradient,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(16),
         boxShadow: onPressed == null
             ? []
             : [
                 BoxShadow(
-                  color: (backgroundColor ?? AppTheme.secondary).withValues(alpha: 0.25),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
+                  color: (backgroundColor ?? AppTheme.primary).withValues(alpha: 0.28),
+                  blurRadius: 14,
+                  offset: const Offset(0, 5),
                 ),
               ],
       ),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(16),
           onTap: isLoading ? null : onPressed,
           child: Center(
             child: _buildChild(Colors.white),
