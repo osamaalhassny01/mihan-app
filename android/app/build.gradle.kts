@@ -8,7 +8,14 @@ plugins {
 android {
     namespace = "com.mihan.platform.mihan_app"
     compileSdk = flutter.compileSdkVersion
-    ndkVersion = "29.0.13113456"
+
+    // Use local NDK 29 if installed locally, otherwise use flutter.ndkVersion for CI/CD runners
+    val localNdk29 = file("${android.sdkDirectory}/ndk/29.0.13113456")
+    if (localNdk29.exists()) {
+        ndkVersion = "29.0.13113456"
+    } else {
+        ndkVersion = flutter.ndkVersion
+    }
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
