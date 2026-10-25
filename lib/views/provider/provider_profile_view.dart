@@ -77,8 +77,8 @@ class ProviderProfileView extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
               decoration: BoxDecoration(
                 color: (profile?.isVerified ?? false)
-                    ? AppTheme.success.withOpacity(0.12)
-                    : AppTheme.warning.withOpacity(0.12),
+                    ? AppTheme.success.withValues(alpha: 0.12)
+                    : AppTheme.warning.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Row(

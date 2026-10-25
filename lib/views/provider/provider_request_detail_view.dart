@@ -93,7 +93,7 @@ class _ProviderRequestDetailViewState extends State<ProviderRequestDetailView> {
                         Container(
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: AppTheme.success.withOpacity(0.1),
+                            color: AppTheme.success.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Text(
@@ -203,9 +203,9 @@ class _ProviderRequestDetailViewState extends State<ProviderRequestDetailView> {
                         Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            color: AppTheme.success.withOpacity(0.1),
+                            color: AppTheme.success.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: AppTheme.success.withOpacity(0.3)),
+                            border: Border.all(color: AppTheme.success.withValues(alpha: 0.3)),
                           ),
                           child: const Center(
                             child: Text(

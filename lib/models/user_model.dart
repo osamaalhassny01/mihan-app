@@ -17,6 +17,22 @@ class UserModel {
 
   bool get isCustomer => role == 'customer';
   bool get isProvider => role == 'provider';
+  bool get isEmployee => role == 'employee';
+  bool get isAdmin => role == 'admin';
+
+  String get roleTitle {
+    switch (role) {
+      case 'provider':
+        return 'مقدم خدمة فنية';
+      case 'employee':
+        return 'موظف منصة';
+      case 'admin':
+        return 'مدير النظام';
+      case 'customer':
+      default:
+        return 'عميل مستفيد';
+    }
+  }
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel(

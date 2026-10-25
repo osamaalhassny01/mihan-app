@@ -20,6 +20,8 @@ class AuthController extends ChangeNotifier {
   bool get isAuthenticated => _currentUser != null;
   bool get isCustomer => _currentUser?.isCustomer ?? false;
   bool get isProvider => _currentUser?.isProvider ?? false;
+  bool get isEmployee => _currentUser?.isEmployee ?? false;
+  bool get isAdmin => _currentUser?.isAdmin ?? false;
 
   Future<void> init() async {
     _isLoading = true;

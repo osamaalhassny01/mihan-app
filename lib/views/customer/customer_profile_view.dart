@@ -70,7 +70,7 @@ class CustomerProfileView extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
               decoration: BoxDecoration(
-                color: AppTheme.secondary.withOpacity(0.12),
+                color: AppTheme.secondary.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: const Text(
