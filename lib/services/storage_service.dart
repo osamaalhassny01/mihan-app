@@ -35,7 +35,11 @@ class StorageService {
 
   static Future<String> getBaseUrl() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(_keyBaseUrl) ?? 'https://mihan-backend-production.up.railway.app';
+    final url = prefs.getString(_keyBaseUrl);
+    if (url == null || url.isEmpty || url.contains('127.0.0.1') || url.contains('localhost')) {
+      return 'https://mihan-backend-production.up.railway.app';
+    }
+    return url;
   }
 
   static Future<void> setBaseUrl(String url) async {
