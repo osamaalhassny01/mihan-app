@@ -267,7 +267,7 @@ class _RegisterViewState extends State<RegisterView> {
                             ),
                           ),
                           Text(
-                            'تتيح منصة مِهَن 4 فئات تشغيلية متكاملة',
+                            'اختر حساب عميل مستفيد أو مقدم خدمة فنية معتمد',
                             style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
                           ),
                         ],
@@ -276,50 +276,26 @@ class _RegisterViewState extends State<RegisterView> {
                   ),
                   const SizedBox(height: 14),
 
-                  // 2x2 Grid for All 4 Roles
+                  // 2 Selected Roles for Mobile App (Customer & Provider)
                   Row(
                     children: [
                       Expanded(
                         child: _buildRoleCard(
                           role: 'customer',
                           title: 'عميل مستفيد',
-                          subtitle: 'طلب وحجز الخدمات الفنية والمنزلية',
+                          subtitle: 'طلب وحجز الخدمات الفنية والمنزلية بسهولة',
                           icon: Icons.person_rounded,
                           activeColor: AppTheme.primary,
                         ),
                       ),
-                      const SizedBox(width: 10),
+                      const SizedBox(width: 12),
                       Expanded(
                         child: _buildRoleCard(
                           role: 'provider',
-                          title: 'مقدم خدمة',
-                          subtitle: 'استقبال وتنفيذ طلبات الصيانة والمهن',
+                          title: 'مقدم خدمة / فني',
+                          subtitle: 'استقبال طلبات الصيانة وزيادة الدخل',
                           icon: Icons.handyman_rounded,
                           activeColor: AppTheme.secondary,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _buildRoleCard(
-                          role: 'employee',
-                          title: 'موظف منصة',
-                          subtitle: 'متابعة وإسناد الطلبات وحل الشكاوى',
-                          icon: Icons.assignment_ind_rounded,
-                          activeColor: const Color(0xFF6366F1),
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: _buildRoleCard(
-                          role: 'admin',
-                          title: 'مدير النظام',
-                          subtitle: 'إشراف عام، مستخدمين وتقارير أداء',
-                          icon: Icons.admin_panel_settings_rounded,
-                          activeColor: const Color(0xFF0F172A),
                         ),
                       ),
                     ],

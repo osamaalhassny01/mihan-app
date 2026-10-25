@@ -567,33 +567,24 @@ class _LoginViewState extends State<LoginView> {
                           ],
                         ),
                         const SizedBox(height: 12),
-                        Wrap(
-                          spacing: 8,
-                          runSpacing: 8,
+                        Row(
                           children: [
-                            _buildQuickChip(
-                              label: '👤 عميل مستفيد',
-                              email: 'customer1@mihan.test',
-                              password: 'Passw0rd!',
-                              color: AppTheme.secondary,
+                            Expanded(
+                              child: _buildQuickChip(
+                                label: '👤 عميل مستفيد',
+                                email: 'customer1@mihan.test',
+                                password: 'Passw0rd!',
+                                color: AppTheme.primary,
+                              ),
                             ),
-                            _buildQuickChip(
-                              label: '🛠️ مقدم خدمة',
-                              email: 'provider1@mihan.test',
-                              password: 'Passw0rd!',
-                              color: AppTheme.info,
-                            ),
-                            _buildQuickChip(
-                              label: '👔 موظف المنصة',
-                              email: 'employee@mihan.test',
-                              password: 'Passw0rd!',
-                              color: const Color(0xFF6366F1),
-                            ),
-                            _buildQuickChip(
-                              label: '🔑 مدير النظام',
-                              email: 'admin@mihan.test',
-                              password: 'Passw0rd!',
-                              color: const Color(0xFF0F172A),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: _buildQuickChip(
+                                label: '🛠️ مهني / فني خدمة',
+                                email: 'provider1@mihan.test',
+                                password: 'Passw0rd!',
+                                color: AppTheme.secondary,
+                              ),
                             ),
                           ],
                         ),

@@ -25,33 +25,46 @@ class _CustomerMainViewState extends State<CustomerMainView> {
     return Scaffold(
       body: _pages[_currentIndex],
       bottomNavigationBar: Container(
-        decoration: const BoxDecoration(
-          border: Border(top: BorderSide(color: AppTheme.border)),
-        ),
-        child: BottomNavigationBar(
-          currentIndex: _currentIndex,
-          onTap: (index) => setState(() => _currentIndex = index),
-          selectedItemColor: AppTheme.secondary,
-          unselectedItemColor: AppTheme.textSecondary,
-          backgroundColor: Colors.white,
-          elevation: 0,
-          items: const [
-            BottomNavigationBarItem(
-              icon: Icon(Icons.home_outlined),
-              activeIcon: Icon(Icons.home),
-              label: 'الرئيسية',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.assignment_outlined),
-              activeIcon: Icon(Icons.assignment),
-              label: 'طلباتي',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.person_outline),
-              activeIcon: Icon(Icons.person),
-              label: 'حسابي',
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(22)),
+          boxShadow: [
+            BoxShadow(
+              color: AppTheme.primaryDark.withValues(alpha: 0.08),
+              blurRadius: 16,
+              offset: const Offset(0, -4),
             ),
           ],
+        ),
+        child: ClipRRect(
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(22)),
+          child: BottomNavigationBar(
+            currentIndex: _currentIndex,
+            onTap: (index) => setState(() => _currentIndex = index),
+            selectedItemColor: AppTheme.primary,
+            unselectedItemColor: AppTheme.textSecondary,
+            selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+            unselectedLabelStyle: const TextStyle(fontSize: 11),
+            backgroundColor: Colors.white,
+            elevation: 0,
+            items: const [
+              BottomNavigationBarItem(
+                icon: Icon(Icons.home_outlined),
+                activeIcon: Icon(Icons.home_rounded),
+                label: 'الرئيسية',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.receipt_long_outlined),
+                activeIcon: Icon(Icons.receipt_long_rounded),
+                label: 'طلباتي',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.person_outline_rounded),
+                activeIcon: Icon(Icons.person_rounded),
+                label: 'حسابي',
+              ),
+            ],
+          ),
         ),
       ),
     );

@@ -151,88 +151,130 @@ class _CustomerHomeViewState extends State<CustomerHomeView> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Premium Welcome Hero Card
+                    // Ultra-Modern Luxury Hero Card
                     Container(
-                      padding: const EdgeInsets.all(22),
                       decoration: BoxDecoration(
                         gradient: AppTheme.heroGradient,
-                        borderRadius: BorderRadius.circular(24),
+                        borderRadius: BorderRadius.circular(28),
                         boxShadow: [
                           BoxShadow(
-                            color: AppTheme.primary.withValues(alpha: 0.25),
-                            blurRadius: 18,
-                            offset: const Offset(0, 8),
+                            color: AppTheme.primaryDark.withValues(alpha: 0.35),
+                            blurRadius: 24,
+                            offset: const Offset(0, 10),
                           ),
                         ],
                       ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                      child: Stack(
                         children: [
-                          Row(
-                            children: [
-                              Container(
-                                width: 50,
-                                height: 50,
-                                decoration: BoxDecoration(
-                                  gradient: AppTheme.tealGradient,
-                                  shape: BoxShape.circle,
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: AppTheme.secondary.withValues(alpha: 0.4),
-                                      blurRadius: 10,
-                                    ),
-                                  ],
-                                ),
-                                child: Center(
-                                  child: Text(
-                                    auth.currentUser?.name.isNotEmpty == true
-                                        ? auth.currentUser!.name[0]
-                                        : 'ع',
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 22,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
+                          // Ambient decorative circle glow
+                          Positioned(
+                            top: -30,
+                            left: -30,
+                            child: Container(
+                              width: 140,
+                              height: 140,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: AppTheme.secondary.withValues(alpha: 0.22),
                               ),
-                              const SizedBox(width: 14),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
+                            ),
+                          ),
+                          Positioned(
+                            bottom: -20,
+                            right: -20,
+                            child: Container(
+                              width: 120,
+                              height: 120,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: AppTheme.accent.withValues(alpha: 0.15),
+                              ),
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.all(24),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
                                   children: [
-                                    const Text(
-                                      'أهلاً بك، سعداء بخدمتك 👋',
-                                      style: TextStyle(color: Colors.white70, fontSize: 13),
+                                    Container(
+                                      width: 56,
+                                      height: 56,
+                                      decoration: BoxDecoration(
+                                        gradient: AppTheme.tealGradient,
+                                        shape: BoxShape.circle,
+                                        border: Border.all(color: Colors.white24, width: 2),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: AppTheme.secondary.withValues(alpha: 0.4),
+                                            blurRadius: 14,
+                                          ),
+                                        ],
+                                      ),
+                                      child: Center(
+                                        child: Text(
+                                          auth.currentUser?.name.isNotEmpty == true
+                                              ? auth.currentUser!.name[0]
+                                              : 'ع',
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 24,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
                                     ),
-                                    const SizedBox(height: 2),
-                                    Text(
-                                      auth.currentUser?.name ?? 'عميل مِهَن',
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 19,
-                                        fontWeight: FontWeight.bold,
+                                    const SizedBox(width: 14),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                                            decoration: BoxDecoration(
+                                              color: Colors.white.withValues(alpha: 0.12),
+                                              borderRadius: BorderRadius.circular(20),
+                                            ),
+                                            child: const Text(
+                                              '✨ مرحباً بك في مِهَن المميزة',
+                                              style: TextStyle(color: Color(0xFF5EEAD4), fontSize: 11.5, fontWeight: FontWeight.w600),
+                                            ),
+                                          ),
+                                          const SizedBox(height: 6),
+                                          Text(
+                                            auth.currentUser?.name ?? 'عميل مِهَن',
+                                            style: const TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 20,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ],
                                       ),
                                     ),
                                   ],
                                 ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 20),
-                          const Text(
-                            'هل تواجه مشكلة فنية في منزلك أو منشأتك؟',
-                            style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w600),
-                          ),
-                          const SizedBox(height: 14),
-                          CustomButton(
-                            text: 'اطلب خدمة فنية جديدة الآن',
-                            icon: Icons.add_task_rounded,
-                            onPressed: () {
-                              Navigator.of(context).push(
-                                MaterialPageRoute(builder: (_) => const CreateRequestView()),
-                              );
-                            },
+                                const SizedBox(height: 20),
+                                const Text(
+                                  'بحاجة إلى صيانة سريعة، سباكة، كهرباء، أو خدمة تقنية متخصصة؟',
+                                  style: TextStyle(color: Colors.white70, fontSize: 13.5, height: 1.4),
+                                ),
+                                const SizedBox(height: 18),
+                                CustomButton(
+                                  text: 'طلب خدمة فورية جديدة',
+                                  icon: Icons.add_circle_outline_rounded,
+                                  gradient: const LinearGradient(
+                                    colors: [Color(0xFF14B8A6), Color(0xFF0F766E)],
+                                  ),
+                                  onPressed: () {
+                                    Navigator.of(context).push(
+                                      MaterialPageRoute(builder: (_) => const CreateRequestView()),
+                                    );
+                                  },
+                                ),
+                              ],
+                            ),
                           ),
                         ],
                       ),
@@ -379,16 +421,16 @@ class _CustomerHomeViewState extends State<CustomerHomeView> {
                               );
                             },
                             child: Container(
-                              padding: const EdgeInsets.all(16),
+                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
                               decoration: BoxDecoration(
                                 color: Colors.white,
-                                borderRadius: BorderRadius.circular(20),
-                                border: Border.all(color: AppTheme.border),
+                                borderRadius: BorderRadius.circular(22),
+                                border: Border.all(color: const Color(0xFFE2E8F0)),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: catColor.withValues(alpha: 0.04),
-                                    blurRadius: 10,
-                                    offset: const Offset(0, 4),
+                                    color: catColor.withValues(alpha: 0.08),
+                                    blurRadius: 16,
+                                    offset: const Offset(0, 6),
                                   ),
                                 ],
                               ),
@@ -396,18 +438,29 @@ class _CustomerHomeViewState extends State<CustomerHomeView> {
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   Container(
-                                    padding: const EdgeInsets.all(12),
+                                    width: 52,
+                                    height: 52,
                                     decoration: BoxDecoration(
-                                      color: catColor.withValues(alpha: 0.1),
-                                      shape: BoxShape.circle,
+                                      gradient: LinearGradient(
+                                        colors: [
+                                          catColor.withValues(alpha: 0.18),
+                                          catColor.withValues(alpha: 0.06),
+                                        ],
+                                        begin: Alignment.topLeft,
+                                        end: Alignment.bottomRight,
+                                      ),
+                                      borderRadius: BorderRadius.circular(16),
+                                      border: Border.all(
+                                        color: catColor.withValues(alpha: 0.2),
+                                      ),
                                     ),
                                     child: Icon(
                                       catIcon,
                                       color: catColor,
-                                      size: 28,
+                                      size: 26,
                                     ),
                                   ),
-                                  const SizedBox(height: 10),
+                                  const SizedBox(height: 12),
                                   Text(
                                     cat.nameAr,
                                     textAlign: TextAlign.center,
@@ -415,24 +468,24 @@ class _CustomerHomeViewState extends State<CustomerHomeView> {
                                     overflow: TextOverflow.ellipsis,
                                     style: const TextStyle(
                                       fontWeight: FontWeight.bold,
-                                      fontSize: 14,
+                                      fontSize: 14.5,
                                       color: AppTheme.textPrimary,
                                     ),
                                   ),
-                                  const SizedBox(height: 4),
+                                  const SizedBox(height: 6),
                                   Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
                                     decoration: BoxDecoration(
                                       color: AppTheme.background,
-                                      borderRadius: BorderRadius.circular(8),
-                                      border: Border.all(color: AppTheme.border),
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(color: AppTheme.borderLight),
                                     ),
                                     child: Text(
-                                      '${cat.servicesCount} خدمات',
-                                      style: const TextStyle(
+                                      '${cat.servicesCount} خدمات متاحة',
+                                      style: TextStyle(
                                         fontSize: 11,
                                         color: AppTheme.textSecondary,
-                                        fontWeight: FontWeight.w500,
+                                        fontWeight: FontWeight.w600,
                                       ),
                                     ),
                                   ),

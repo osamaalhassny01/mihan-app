@@ -119,28 +119,44 @@ class _ProviderDashboardViewState extends State<ProviderDashboardView> {
 
                     // Provider Welcome Card
                     Container(
-                      padding: const EdgeInsets.all(20),
+                      padding: const EdgeInsets.all(22),
                       decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [AppTheme.primary, Color(0xFF1B3A4B)],
-                          begin: Alignment.topRight,
-                          end: Alignment.bottomLeft,
-                        ),
-                        borderRadius: BorderRadius.circular(20),
+                        gradient: AppTheme.heroGradient,
+                        borderRadius: BorderRadius.circular(24),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppTheme.primaryDark.withValues(alpha: 0.3),
+                            blurRadius: 18,
+                            offset: const Offset(0, 8),
+                          ),
+                        ],
                       ),
                       child: Row(
                         children: [
-                          CircleAvatar(
-                            radius: 28,
-                            backgroundColor: AppTheme.secondary,
-                            child: Text(
-                              auth.currentUser?.name.isNotEmpty == true
-                                  ? auth.currentUser!.name[0]
-                                  : 'م',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
+                          Container(
+                            width: 54,
+                            height: 54,
+                            decoration: BoxDecoration(
+                              gradient: AppTheme.tealGradient,
+                              shape: BoxShape.circle,
+                              border: Border.all(color: Colors.white24, width: 2),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: AppTheme.secondary.withValues(alpha: 0.4),
+                                  blurRadius: 10,
+                                ),
+                              ],
+                            ),
+                            child: Center(
+                              child: Text(
+                                auth.currentUser?.name.isNotEmpty == true
+                                    ? auth.currentUser!.name[0]
+                                    : 'م',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                             ),
                           ),
