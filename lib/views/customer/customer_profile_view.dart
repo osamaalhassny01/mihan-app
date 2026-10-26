@@ -219,7 +219,7 @@ class CustomerProfileView extends StatelessWidget {
                   _buildActionTile(
                     icon: Icons.support_agent_rounded,
                     title: 'الدعم والمساعدة والشكاوى',
-                    subtitle: 'تواصل مع فريق منصة مِهَن',
+                    subtitle: 'تواصل مع فريق مِهَن',
                     color: AppTheme.primary,
                     onTap: () {
                       ScaffoldMessenger.of(context).showSnackBar(

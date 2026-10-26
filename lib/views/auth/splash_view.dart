@@ -77,38 +77,32 @@ class _SplashViewState extends State<SplashView> with SingleTickerProviderStateM
                     ScaleTransition(
                       scale: _scaleAnimation,
                       child: Container(
-                        width: 100,
-                        height: 100,
+                        width: 110,
+                        height: 110,
+                        padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
                           color: Colors.white,
-                          borderRadius: BorderRadius.circular(28),
+                          borderRadius: BorderRadius.circular(32),
                           boxShadow: [
                             BoxShadow(
                               color: Colors.black.withValues(alpha: 0.25),
-                              blurRadius: 24,
-                              offset: const Offset(0, 10),
+                              blurRadius: 28,
+                              offset: const Offset(0, 12),
                             ),
                           ],
                         ),
-                        child: const Center(
-                          child: Text(
-                            'مِهَن',
-                            style: TextStyle(
-                              color: AppTheme.primary,
-                              fontSize: 36,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 2,
-                            ),
-                          ),
+                        child: Image.asset(
+                          'assets/images/logo-mihan-mark.png',
+                          fit: BoxFit.contain,
                         ),
                       ),
                     ),
                     const SizedBox(height: 28),
                     const Text(
-                      'منصة مِهَن للخدمات الفنية',
+                      'مِهَن للخدمات الفنية',
                       style: TextStyle(
                         color: Colors.white,
-                        fontSize: 22,
+                        fontSize: 24,
                         fontWeight: FontWeight.bold,
                         letterSpacing: 0.5,
                       ),

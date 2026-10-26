@@ -407,45 +407,44 @@ class _LoginViewState extends State<LoginView> {
                       children: [
                         Container(
                           width: 84,
-                          height: 84,
+                        Container(
+                          width: 88,
+                          height: 88,
+                          padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            gradient: AppTheme.heroGradient,
+                            color: Colors.white,
                             borderRadius: BorderRadius.circular(24),
                             boxShadow: [
                               BoxShadow(
-                                color: AppTheme.primary.withValues(alpha: 0.25),
-                                blurRadius: 16,
+                                color: AppTheme.primaryDark.withValues(alpha: 0.12),
+                                blurRadius: 20,
                                 offset: const Offset(0, 8),
                               ),
                             ],
+                            border: Border.all(color: AppTheme.border),
                           ),
-                          child: const Center(
-                            child: Text(
-                              'مِهَن',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 32,
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: 1.5,
-                              ),
-                            ),
+                          child: Image.asset(
+                            'assets/images/logo-mihan-mark.png',
+                            fit: BoxFit.contain,
                           ),
                         ),
                         const SizedBox(height: 16),
                         const Text(
-                          'تسجيل الدخول',
+                          'مِهَن',
                           style: TextStyle(
-                            fontSize: 26,
+                            fontSize: 28,
                             fontWeight: FontWeight.bold,
                             color: AppTheme.primary,
+                            letterSpacing: 0.5,
                           ),
                         ),
-                        const SizedBox(height: 6),
+                        const SizedBox(height: 4),
                         const Text(
-                          'منصة الخدمات الفنية الذكية ودعم القرار',
+                          'الخدمات الفنية الذكية ودعم القرار',
                           style: TextStyle(
                             fontSize: 13,
                             color: AppTheme.textSecondary,
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
                       ],
@@ -522,8 +521,8 @@ class _LoginViewState extends State<LoginView> {
 
                   // Login Action Button
                   CustomButton(
-                    text: 'دخول إلى المنصة',
-                    icon: Icons.login,
+                    text: 'تسجيل الدخول',
+                    icon: Icons.login_rounded,
                     isLoading: auth.isLoading,
                     onPressed: () => _onLoginPressed(context),
                   ),

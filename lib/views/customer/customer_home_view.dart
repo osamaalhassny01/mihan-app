@@ -105,16 +105,17 @@ class _CustomerHomeViewState extends State<CustomerHomeView> {
         title: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Container(
-              padding: const EdgeInsets.all(6),
-              decoration: BoxDecoration(
-                color: AppTheme.secondary,
-                borderRadius: BorderRadius.circular(10),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: Image.asset(
+                'assets/images/logo-mihan-mark.png',
+                width: 28,
+                height: 28,
+                fit: BoxFit.contain,
               ),
-              child: const Icon(Icons.handyman, size: 18, color: Colors.white),
             ),
             const SizedBox(width: 8),
-            const Text('منصة مِهَن'),
+            const Text('مِهَن'),
           ],
         ),
         actions: [

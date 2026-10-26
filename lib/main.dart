@@ -23,7 +23,7 @@ class MihanPlatformApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => ProviderController()),
       ],
       child: MaterialApp(
-        title: 'منصة مِهَن',
+        title: 'مِهَن',
         debugShowCheckedModeBanner: false,
         theme: AppTheme.lightTheme,
         builder: (context, child) {

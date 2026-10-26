@@ -99,7 +99,7 @@ class _EmployeeMainViewState extends State<EmployeeMainView> {
               child: const Icon(Icons.badge_rounded, size: 18, color: Colors.white),
             ),
             const SizedBox(width: 8),
-            const Text('بوابة موظف المنصة'),
+            const Text('بوابة الموظف'),
           ],
         ),
         actions: [
