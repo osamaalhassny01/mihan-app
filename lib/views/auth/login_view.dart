@@ -406,8 +406,6 @@ class _LoginViewState extends State<LoginView> {
                     child: Column(
                       children: [
                         Container(
-                          width: 84,
-                        Container(
                           width: 88,
                           height: 88,
                           padding: const EdgeInsets.all(12),
