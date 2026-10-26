@@ -100,136 +100,181 @@ class _CreateRequestViewState extends State<CreateRequestView> {
                 children: [
                   if (customer.errorMessage != null) ...[
                     Container(
-                      padding: const EdgeInsets.all(12),
+                      padding: const EdgeInsets.all(14),
                       decoration: BoxDecoration(
                         color: AppTheme.error.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: AppTheme.error.withValues(alpha: 0.2)),
                       ),
-                      child: Text(
-                        customer.errorMessage!,
-                        style: const TextStyle(color: AppTheme.error, fontSize: 13),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.error_outline_rounded, color: AppTheme.error, size: 20),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              customer.errorMessage!,
+                              style: const TextStyle(color: AppTheme.error, fontSize: 13, fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 18),
                   ],
 
-                  // Service Selector
-                  const Text(
-                    'الخدمة المطلوبة *',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                  ),
-                  const SizedBox(height: 8),
+                  // Form Container Card
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: AppTheme.border),
-                    ),
-                    child: DropdownButtonHideUnderline(
-                      child: DropdownButton<int>(
-                        isExpanded: true,
-                        hint: const Text('اختر نوع الخدمة'),
-                        value: _selectedServiceId,
-                        items: customer.services.map((s) {
-                          return DropdownMenuItem<int>(
-                            value: s.id,
-                            child: Text(s.nameAr),
-                          );
-                        }).toList(),
-                        onChanged: (val) => setState(() => _selectedServiceId = val),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Location Selector
-                  const Text(
-                    'المنطقة أو المدينة',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                  ),
-                  const SizedBox(height: 8),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: AppTheme.border),
-                    ),
-                    child: DropdownButtonHideUnderline(
-                      child: DropdownButton<int>(
-                        isExpanded: true,
-                        hint: const Text('اختر المنطقة'),
-                        value: _selectedLocationId,
-                        items: customer.locations.map((loc) {
-                          return DropdownMenuItem<int>(
-                            value: loc.id,
-                            child: Text(loc.nameAr),
-                          );
-                        }).toList(),
-                        onChanged: (val) => setState(() => _selectedLocationId = val),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Description
-                  CustomTextField(
-                    label: 'وصف المشكلة أو الطلب *',
-                    hint: 'اشرح العطل أو متطلبات العمل بدقة...',
-                    controller: _descriptionController,
-                    maxLines: 4,
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Date & Time
-                  Row(
-                    children: [
-                      Expanded(
-                        child: CustomTextField(
-                          label: 'التاريخ المفضل',
-                          hint: '2026-11-01',
-                          controller: _dateController,
-                          prefixIcon: Icons.calendar_today_outlined,
+                      borderRadius: BorderRadius.circular(22),
+                      border: Border.all(color: AppTheme.border.withValues(alpha: 0.8)),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.03),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
                         ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: CustomTextField(
-                          label: 'الوقت المفضل',
-                          hint: '10:00 صباحًا',
-                          controller: _timeController,
-                          prefixIcon: Icons.access_time_outlined,
+                      ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Service Selector
+                        const Row(
+                          children: [
+                            Icon(Icons.build_circle_outlined, size: 18, color: AppTheme.primary),
+                            SizedBox(width: 6),
+                            Text(
+                              'الخدمة الفنية المطلوبة *',
+                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5, color: AppTheme.textPrimary),
+                            ),
+                          ],
                         ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
+                        const SizedBox(height: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF8FAFC),
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(color: AppTheme.border),
+                          ),
+                          child: DropdownButtonHideUnderline(
+                            child: DropdownButton<int>(
+                              isExpanded: true,
+                              icon: const Icon(Icons.keyboard_arrow_down_rounded, color: AppTheme.secondary),
+                              hint: const Text('اختر نوع الخدمة المطلوبة', style: TextStyle(fontSize: 13)),
+                              value: _selectedServiceId,
+                              items: customer.services.map((s) {
+                                return DropdownMenuItem<int>(
+                                  value: s.id,
+                                  child: Text(s.nameAr, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13.5)),
+                                );
+                              }).toList(),
+                              onChanged: (val) => setState(() => _selectedServiceId = val),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 18),
 
-                  // Budget & Notes
-                  CustomTextField(
-                    label: 'الميزانية التقديرية (ريال)',
-                    hint: 'مثال: 5000',
-                    controller: _budgetController,
-                    keyboardType: TextInputType.number,
-                    prefixIcon: Icons.attach_money_outlined,
-                  ),
-                  const SizedBox(height: 16),
+                        // Location Selector
+                        const Row(
+                          children: [
+                            Icon(Icons.location_on_outlined, size: 18, color: AppTheme.secondary),
+                            SizedBox(width: 6),
+                            Text(
+                              'المدينة أو المنطقة *',
+                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5, color: AppTheme.textPrimary),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF8FAFC),
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(color: AppTheme.border),
+                          ),
+                          child: DropdownButtonHideUnderline(
+                            child: DropdownButton<int>(
+                              isExpanded: true,
+                              icon: const Icon(Icons.keyboard_arrow_down_rounded, color: AppTheme.secondary),
+                              hint: const Text('اختر المنطقة أو الفرع الأقرب إليك', style: TextStyle(fontSize: 13)),
+                              value: _selectedLocationId,
+                              items: customer.locations.map((loc) {
+                                return DropdownMenuItem<int>(
+                                  value: loc.id,
+                                  child: Text(loc.nameAr, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13.5)),
+                                );
+                              }).toList(),
+                              onChanged: (val) => setState(() => _selectedLocationId = val),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 18),
 
-                  CustomTextField(
-                    label: 'ملاحظات إضافية',
-                    hint: 'أي تفاصيل عن الموقع أو أدوات العمل...',
-                    controller: _notesController,
-                    maxLines: 2,
+                        // Description
+                        CustomTextField(
+                          label: 'وصف المشكلة أو تفاصيل العطل *',
+                          hint: 'اشرح العطل بدقة لتسهيل معاينة الفني للطلب...',
+                          controller: _descriptionController,
+                          maxLines: 4,
+                        ),
+                        const SizedBox(height: 18),
+
+                        // Date & Time
+                        Row(
+                          children: [
+                            Expanded(
+                              child: CustomTextField(
+                                label: 'التاريخ المفضل للزيارة',
+                                hint: 'مثال: 2026-11-01',
+                                controller: _dateController,
+                                prefixIcon: Icons.calendar_today_outlined,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: CustomTextField(
+                                label: 'الوقت الأنسب',
+                                hint: 'مثال: 10:00 صباحًا',
+                                controller: _timeController,
+                                prefixIcon: Icons.access_time_outlined,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 18),
+
+                        // Budget & Notes
+                        CustomTextField(
+                          label: 'الميزانية التقديرية (ريال - اختياري)',
+                          hint: 'أدخل الميزانية المقترحة إن وجدت',
+                          controller: _budgetController,
+                          keyboardType: TextInputType.number,
+                          prefixIcon: Icons.payments_outlined,
+                        ),
+                        const SizedBox(height: 18),
+
+                        CustomTextField(
+                          label: 'ملاحظات إضافية وتفاصيل الموقع',
+                          hint: 'رقم الشقة، الدور، أو أي تفاصيل مساعدة...',
+                          controller: _notesController,
+                          maxLines: 2,
+                        ),
+                      ],
+                    ),
                   ),
-                  const SizedBox(height: 28),
+                  const SizedBox(height: 24),
 
                   CustomButton(
-                    text: 'تأكيد وإرسال الطلب',
-                    icon: Icons.send_outlined,
+                    text: 'تأكيد وإرسال طلب الخدمة',
+                    icon: Icons.send_rounded,
                     isLoading: customer.isCreatingRequest,
                     onPressed: () => _onSubmit(context),
                   ),
+                  const SizedBox(height: 24),
                 ],
               ),
             ),

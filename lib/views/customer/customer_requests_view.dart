@@ -87,7 +87,7 @@ class _CustomerRequestsViewState extends State<CustomerRequestsView> {
                           itemBuilder: (context, index) {
                             final req = customer.requests[index];
                             return InkWell(
-                              borderRadius: BorderRadius.circular(16),
+                              borderRadius: BorderRadius.circular(18),
                               onTap: () {
                                 Navigator.of(context).push(
                                   MaterialPageRoute(
@@ -96,11 +96,18 @@ class _CustomerRequestsViewState extends State<CustomerRequestsView> {
                                 );
                               },
                               child: Container(
-                                padding: const EdgeInsets.all(16),
+                                padding: const EdgeInsets.all(18),
                                 decoration: BoxDecoration(
                                   color: Colors.white,
-                                  borderRadius: BorderRadius.circular(16),
-                                  border: Border.all(color: AppTheme.border),
+                                  borderRadius: BorderRadius.circular(18),
+                                  border: Border.all(color: AppTheme.border.withValues(alpha: 0.8)),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withValues(alpha: 0.03),
+                                      blurRadius: 10,
+                                      offset: const Offset(0, 3),
+                                    ),
+                                  ],
                                 ),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -108,51 +115,93 @@ class _CustomerRequestsViewState extends State<CustomerRequestsView> {
                                     Row(
                                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                       children: [
-                                        Text(
-                                          req.requestNumber,
-                                          style: const TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 15,
-                                            color: AppTheme.primary,
-                                          ),
+                                        Row(
+                                          children: [
+                                            Container(
+                                              padding: const EdgeInsets.all(8),
+                                              decoration: BoxDecoration(
+                                                color: AppTheme.primary.withValues(alpha: 0.1),
+                                                borderRadius: BorderRadius.circular(10),
+                                              ),
+                                              child: const Icon(
+                                                Icons.build_circle_outlined,
+                                                color: AppTheme.primary,
+                                                size: 20,
+                                              ),
+                                            ),
+                                            const SizedBox(width: 10),
+                                            Column(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  req.requestNumber,
+                                                  style: const TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 14,
+                                                    color: AppTheme.primary,
+                                                  ),
+                                                ),
+                                                Text(
+                                                  req.serviceNameAr ?? 'خدمة فنية',
+                                                  style: const TextStyle(
+                                                    fontSize: 14,
+                                                    fontWeight: FontWeight.bold,
+                                                    color: AppTheme.textPrimary,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ],
                                         ),
                                         StatusBadge(status: req.status, label: req.statusArabic),
                                       ],
                                     ),
-                                    const SizedBox(height: 8),
-                                    Text(
-                                      req.serviceNameAr ?? 'خدمة فنية',
-                                      style: const TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w600,
-                                        color: AppTheme.textPrimary,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 4),
+                                    const SizedBox(height: 12),
                                     Text(
                                       req.description,
                                       maxLines: 2,
                                       overflow: TextOverflow.ellipsis,
                                       style: const TextStyle(
                                         fontSize: 13,
+                                        height: 1.4,
                                         color: AppTheme.textSecondary,
                                       ),
                                     ),
-                                    const SizedBox(height: 12),
+                                    const SizedBox(height: 14),
+                                    const Divider(height: 1),
+                                    const SizedBox(height: 10),
                                     Row(
                                       children: [
                                         if (req.providerName != null) ...[
-                                          const Icon(Icons.person_pin_outlined, size: 16, color: AppTheme.secondary),
+                                          const Icon(Icons.person_pin_circle_outlined, size: 16, color: AppTheme.secondary),
                                           const SizedBox(width: 4),
                                           Text(
                                             req.providerName!,
-                                            style: const TextStyle(fontSize: 12, color: AppTheme.secondary, fontWeight: FontWeight.bold),
+                                            style: const TextStyle(
+                                              fontSize: 12,
+                                              color: AppTheme.secondary,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                          const Spacer(),
+                                        ] else ...[
+                                          const Icon(Icons.access_time_rounded, size: 15, color: AppTheme.textSecondary),
+                                          const SizedBox(width: 4),
+                                          const Text(
+                                            'بانتظار قبول فني',
+                                            style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
                                           ),
                                           const Spacer(),
                                         ],
-                                        Text(
-                                          req.createdAt.split(' ')[0],
-                                          style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary),
+                                        Row(
+                                          children: [
+                                            const Icon(Icons.calendar_today_outlined, size: 13, color: AppTheme.textSecondary),
+                                            const SizedBox(width: 4),
+                                            Text(
+                                              req.createdAt.split(' ')[0],
+                                              style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+                                            ),
+                                          ],
                                         ),
                                       ],
                                     ),

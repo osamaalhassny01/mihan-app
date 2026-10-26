@@ -502,79 +502,159 @@ class _EmployeeMainViewState extends State<EmployeeMainView> {
 
   Widget _buildProfileTab(dynamic user) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       child: Column(
         children: [
-          const SizedBox(height: 16),
-          CircleAvatar(
-            radius: 46,
-            backgroundColor: const Color(0xFF6366F1),
-            child: Text(
-              user?.name.isNotEmpty == true ? user.name[0] : 'م',
-              style: const TextStyle(fontSize: 36, color: Colors.white, fontWeight: FontWeight.bold),
-            ),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            user?.name ?? 'موظف المنصة',
-            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
-          ),
-          const SizedBox(height: 4),
+          // Luxury Employee Header Card
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 20),
             decoration: BoxDecoration(
-              color: const Color(0xFF6366F1).withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: const Text(
-              'حساب موظف منصة مِهَن',
-              style: TextStyle(color: Color(0xFF6366F1), fontWeight: FontWeight.bold, fontSize: 12),
-            ),
-          ),
-          const SizedBox(height: 32),
-
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppTheme.border),
+              gradient: AppTheme.heroGradient,
+              borderRadius: BorderRadius.circular(24),
+              boxShadow: [
+                BoxShadow(
+                  color: AppTheme.primaryDark.withValues(alpha: 0.2),
+                  blurRadius: 18,
+                  offset: const Offset(0, 8),
+                ),
+              ],
             ),
             child: Column(
               children: [
-                _buildProfileRow(Icons.email_outlined, 'البريد الإلكتروني', user?.email ?? '-'),
-                const Divider(height: 24),
-                _buildProfileRow(Icons.phone_outlined, 'رقم الهاتف', user?.phone ?? '-'),
-                const Divider(height: 24),
-                _buildProfileRow(Icons.security_outlined, 'الصلاحيات', 'إشراف على الطلبات والشكاوى'),
+                Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.white.withValues(alpha: 0.4), width: 3),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.25),
+                        blurRadius: 12,
+                      ),
+                    ],
+                  ),
+                  child: CircleAvatar(
+                    radius: 46,
+                    backgroundColor: const Color(0xFF6366F1),
+                    child: Text(
+                      user?.name.isNotEmpty == true ? user.name[0] : 'م',
+                      style: const TextStyle(
+                        fontSize: 36,
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  user?.name ?? 'موظف المنصة',
+                  style: const TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.18),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: Colors.white.withValues(alpha: 0.25)),
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.shield_rounded, color: Colors.white, size: 14),
+                      SizedBox(width: 6),
+                      Text(
+                        'صلاحيات الإشراف والرقابة الفنية',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ],
             ),
           ),
-          const SizedBox(height: 32),
+          const SizedBox(height: 24),
+
+          // Details Card
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: AppTheme.border),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.03),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'بيانات الموظف والمنصب',
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    color: AppTheme.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                _buildProfileRow(Icons.email_outlined, 'البريد الإلكتروني', user?.email ?? '-', AppTheme.primary),
+                const Divider(height: 24),
+                _buildProfileRow(Icons.phone_outlined, 'رقم التواصل', user?.phone ?? 'لم يحدد', AppTheme.secondary),
+                const Divider(height: 24),
+                _buildProfileRow(Icons.security_outlined, 'مستوى الصلاحية', 'إشراف على الطلبات وحل الشكاوى', const Color(0xFF6366F1)),
+              ],
+            ),
+          ),
+          const SizedBox(height: 28),
 
           CustomButton(
-            text: 'تسجيل الخروج',
-            icon: Icons.logout,
+            text: 'تسجيل الخروج من الحساب',
+            icon: Icons.logout_rounded,
             backgroundColor: AppTheme.error,
             onPressed: () => _onLogout(context),
           ),
+          const SizedBox(height: 24),
         ],
       ),
     );
   }
 
-  Widget _buildProfileRow(IconData icon, String title, String value) {
+  Widget _buildProfileRow(IconData icon, String title, String value, Color accentColor) {
     return Row(
       children: [
-        Icon(icon, color: AppTheme.textSecondary, size: 22),
-        const SizedBox(width: 12),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(title, style: const TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
-            const SizedBox(height: 2),
-            Text(value, style: const TextStyle(color: AppTheme.textPrimary, fontWeight: FontWeight.w600, fontSize: 14)),
-          ],
+        Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: accentColor.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Icon(icon, color: accentColor, size: 20),
+        ),
+        const SizedBox(width: 14),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(title, style: const TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
+              const SizedBox(height: 2),
+              Text(value, style: const TextStyle(color: AppTheme.textPrimary, fontWeight: FontWeight.w600, fontSize: 14)),
+            ],
+          ),
         ),
       ],
     );
