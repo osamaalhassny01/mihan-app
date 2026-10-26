@@ -177,17 +177,15 @@ class _EmployeeMainViewState extends State<EmployeeMainView> {
       );
     }
 
-    switch (_currentIndex) {
-      case 0:
-        return _buildDashboardTab(user);
-      case 1:
-        return _buildRequestsTab();
-      case 2:
-        return _buildComplaintsTab();
-      case 3:
-      default:
-        return _buildProfileTab(user);
-    }
+    return IndexedStack(
+      index: _currentIndex,
+      children: [
+        _buildDashboardTab(user),
+        _buildRequestsTab(),
+        _buildComplaintsTab(),
+        _buildProfileTab(user),
+      ],
+    );
   }
 
   Widget _buildDashboardTab(dynamic user) {

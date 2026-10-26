@@ -109,7 +109,7 @@ class _ProviderRequestsViewState extends State<ProviderRequestsView> {
           ),
 
           Expanded(
-            child: provider.isLoading
+            child: provider.isLoading && filteredRequests.isEmpty
                 ? const Center(child: CircularProgressIndicator())
                 : filteredRequests.isEmpty
                     ? EmptyStateWidget(

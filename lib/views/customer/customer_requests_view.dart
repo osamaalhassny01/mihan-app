@@ -69,7 +69,7 @@ class _CustomerRequestsViewState extends State<CustomerRequestsView> {
           ),
 
           Expanded(
-            child: customer.isLoading
+            child: customer.isLoading && customer.requests.isEmpty
                 ? const Center(child: CircularProgressIndicator())
                 : customer.requests.isEmpty
                     ? EmptyStateWidget(
