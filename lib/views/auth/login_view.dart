@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../config/app_theme.dart';
@@ -5,6 +6,7 @@ import '../../config/api_config.dart';
 import '../../controllers/auth_controller.dart';
 import '../../services/api_service.dart';
 import '../../services/storage_service.dart';
+import '../../services/chunked_upload_service.dart';
 import '../widgets/presentation_widgets.dart';
 import 'register_view.dart';
 import '../customer/customer_main_view.dart';
@@ -322,6 +324,24 @@ class _LoginViewState extends State<LoginView> {
     );
   }
 
+  void _navigateToRoleHome(BuildContext context, AuthController auth) {
+    if (!mounted) return;
+    Widget destination;
+    if (auth.isProvider) {
+      destination = const ProviderMainView();
+    } else if (auth.isEmployee) {
+      destination = const EmployeeMainView();
+    } else if (auth.isAdmin) {
+      destination = const AdminMainView();
+    } else {
+      destination = const CustomerMainView();
+    }
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => destination),
+      (route) => false,
+    );
+  }
+
   void _onLoginPressed(BuildContext context) async {
     final email = _emailController.text.trim();
     final password = _passwordController.text;
@@ -341,38 +361,168 @@ class _LoginViewState extends State<LoginView> {
 
     if (!mounted) return;
     if (success) {
-      if (auth.isCustomer) {
-        // ignore: use_build_context_synchronously
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (_) => const CustomerMainView()),
-          (route) => false,
-        );
-      } else if (auth.isProvider) {
-        // ignore: use_build_context_synchronously
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (_) => const ProviderMainView()),
-          (route) => false,
-        );
-      } else if (auth.isEmployee) {
-        // ignore: use_build_context_synchronously
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (_) => const EmployeeMainView()),
-          (route) => false,
-        );
-      } else if (auth.isAdmin) {
-        // ignore: use_build_context_synchronously
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (_) => const AdminMainView()),
-          (route) => false,
-        );
-      } else {
-        // ignore: use_build_context_synchronously
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (_) => const CustomerMainView()),
-          (route) => false,
-        );
-      }
+      _navigateToRoleHome(context, auth);
     }
+  }
+
+  void _onLoginWithUploadTest(BuildContext context) async {
+    final email = _emailController.text.trim();
+    final password = _passwordController.text;
+
+    if (email.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('يرجى إدخال البريد الإلكتروني وكلمة المرور أولاً لتسجيل الدخول والبدء بالاختبار'),
+          backgroundColor: AppTheme.warning,
+        ),
+      );
+      return;
+    }
+
+    final auth = context.read<AuthController>();
+    final success = await auth.login(email, password);
+
+    if (!mounted) return;
+    if (!success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(auth.errorMessage ?? 'فشل تسجيل الدخول'),
+          backgroundColor: AppTheme.error,
+        ),
+      );
+      return;
+    }
+
+    // تم تسجيل الدخول بنجاح -> فتح نافذة الاختبار ورفع الأجزاء
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogCtx) {
+        double progress = 0.0;
+        int currentChunk = 0;
+        int totalChunks = 0;
+        String statusText = 'تم الدخول بنجاح. جاري تحضير ملف الاختبار (4 ميجابايت)...';
+        bool isDone = false;
+        bool isSuccess = false;
+        bool started = false;
+        String? finalUrl;
+
+        return StatefulBuilder(
+          builder: (ctx, setState) {
+            void startUpload() async {
+              started = true;
+              try {
+                final tempFile = File(
+                  '${Directory.systemTemp.path}/login_test_chunk_${DateTime.now().millisecondsSinceEpoch}.bin',
+                );
+                // ملف اختباري بحجم 4 ميجابايت
+                final chunk = List<int>.filled(1024 * 1024, 65);
+                final sink = tempFile.openWrite();
+                for (int i = 0; i < 4; i++) {
+                  sink.add(chunk);
+                }
+                await sink.flush();
+                await sink.close();
+
+                setState(() {
+                  statusText = 'بدء إرسال الأجزاء إلى السيرفر عبر /api/upload/chunk...';
+                });
+
+                final res = await ChunkedUploadService.uploadLargeFile(
+                  file: tempFile,
+                  chunkSize: 1024 * 1024, // 1MB لكل جزء
+                  onProgress: (p) {
+                    setState(() {
+                      progress = p.percentage;
+                      currentChunk = p.currentChunk;
+                      totalChunks = p.totalChunks;
+                      statusText = 'جاري رفع الجزء $currentChunk من $totalChunks (${(p.percentage * 100).toInt()}%)';
+                    });
+                  },
+                );
+
+                if (await tempFile.exists()) {
+                  await tempFile.delete();
+                }
+
+                setState(() {
+                  isDone = true;
+                  isSuccess = res.success;
+                  if (res.success && res.data != null) {
+                    finalUrl = res.data['file_url']?.toString();
+                    statusText = 'تم استلام وتجميع كافة أجزاء الملف بنجاح على السيرفر!';
+                  } else {
+                    statusText = res.message.isNotEmpty ? res.message : 'فشل الرفع';
+                  }
+                });
+              } catch (e) {
+                setState(() {
+                  isDone = true;
+                  isSuccess = false;
+                  statusText = 'خطأ أثناء الرفع: $e';
+                });
+              }
+            }
+
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (!started) {
+                startUpload();
+              }
+            });
+
+            return AlertDialog(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              title: const Row(
+                children: [
+                  Icon(Icons.cloud_upload_rounded, color: Colors.indigo),
+                  SizedBox(width: 10),
+                  Text('اختبار الرفع أثناء الدخول', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                ],
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(statusText, textAlign: TextAlign.center, style: const TextStyle(fontSize: 14)),
+                  const SizedBox(height: 16),
+                  LinearProgressIndicator(
+                    value: isDone ? (isSuccess ? 1.0 : 0.0) : progress,
+                    backgroundColor: Colors.grey.shade200,
+                    color: isSuccess ? Colors.green : (isDone ? Colors.red : Colors.indigo),
+                    minHeight: 8,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  if (finalUrl != null) ...[
+                    const SizedBox(height: 12),
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade100,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text('مسار الملف بالسيرفر: $finalUrl', style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                    ),
+                  ],
+                ],
+              ),
+              actions: [
+                if (isDone)
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.of(dialogCtx).pop();
+                      _navigateToRoleHome(context, auth);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: isSuccess ? Colors.green : AppTheme.primary,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    child: const Text('متابعة إلى التطبيق ⬅', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                  ),
+              ],
+            );
+          },
+        );
+      },
+    );
   }
 
   @override
@@ -517,11 +667,21 @@ class _LoginViewState extends State<LoginView> {
                   ),
                   const SizedBox(height: 24),
 
-                  // Login Action Button
+                  // Buttons: Login with Upload Test & Standard Login
                   CustomButton(
-                    text: 'تسجيل الدخول',
-                    icon: Icons.login_rounded,
+                    text: 'تسجيل الدخول واختبار رفع الملفات المجزأة',
+                    icon: Icons.cloud_upload_rounded,
+                    backgroundColor: Colors.indigo,
                     isLoading: auth.isLoading,
+                    onPressed: () => _onLoginWithUploadTest(context),
+                  ),
+                  const SizedBox(height: 12),
+
+                  CustomButton(
+                    text: 'تسجيل الدخول فقط (عادي)',
+                    icon: Icons.login_rounded,
+                    outlined: true,
+                    isLoading: false,
                     onPressed: () => _onLoginPressed(context),
                   ),
                   const SizedBox(height: 24),
