@@ -1,9 +1,7 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../config/app_theme.dart';
 import '../../controllers/auth_controller.dart';
-import '../../services/chunked_upload_service.dart';
 import '../widgets/presentation_widgets.dart';
 import '../auth/login_view.dart';
 
@@ -53,134 +51,6 @@ class CustomerProfileView extends StatelessWidget {
         );
       }
     }
-  }
-
-  void _testChunkedUpload(BuildContext context) {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (dialogCtx) {
-        double progress = 0.0;
-        int currentChunk = 0;
-        int totalChunks = 0;
-        String statusText = 'جاري تحضير ملف الاختبار (4 ميجابايت)...';
-        bool isDone = false;
-        bool isSuccess = false;
-        bool started = false;
-        String? finalUrl;
-
-        return StatefulBuilder(
-          builder: (ctx, setState) {
-            void startUpload() async {
-              started = true;
-              try {
-                final tempFile = File(
-                  '${Directory.systemTemp.path}/test_chunk_${DateTime.now().millisecondsSinceEpoch}.bin',
-                );
-                final chunk = List<int>.filled(1024 * 1024, 65);
-                final sink = tempFile.openWrite();
-                for (int i = 0; i < 4; i++) {
-                  sink.add(chunk);
-                }
-                await sink.flush();
-                await sink.close();
-
-                setState(() {
-                  statusText = 'بدء إرسال الأجزاء إلى السيرفر...';
-                });
-
-                final res = await ChunkedUploadService.uploadLargeFile(
-                  file: tempFile,
-                  chunkSize: 1024 * 1024,
-                  onProgress: (p) {
-                    setState(() {
-                      progress = p.percentage;
-                      currentChunk = p.currentChunk;
-                      totalChunks = p.totalChunks;
-                      statusText = 'جاري رفع الجزء $currentChunk من $totalChunks (${(p.percentage * 100).toInt()}%)';
-                    });
-                  },
-                );
-
-                if (await tempFile.exists()) {
-                  await tempFile.delete();
-                }
-
-                setState(() {
-                  isDone = true;
-                  isSuccess = res.success;
-                  if (res.success && res.data != null) {
-                    finalUrl = res.data['file_url']?.toString();
-                    statusText = 'تم استلام وتجميع كافة الأجزاء بنجاح على السيرفر!';
-                  } else {
-                    statusText = res.message.isNotEmpty ? res.message : 'فشل الرفع';
-                  }
-                });
-              } catch (e) {
-                setState(() {
-                  isDone = true;
-                  isSuccess = false;
-                  statusText = 'خطأ: $e';
-                });
-              }
-            }
-
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              if (!started) {
-                startUpload();
-              }
-            });
-
-            return AlertDialog(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-              title: const Row(
-                children: [
-                  Icon(Icons.cloud_upload_rounded, color: Colors.indigo),
-                  SizedBox(width: 10),
-                  Text('اختبار الرفع المجزأ', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-                ],
-              ),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(statusText, textAlign: TextAlign.center, style: const TextStyle(fontSize: 14)),
-                  const SizedBox(height: 16),
-                  LinearProgressIndicator(
-                    value: isDone ? (isSuccess ? 1.0 : 0.0) : progress,
-                    backgroundColor: Colors.grey.shade200,
-                    color: isSuccess ? Colors.green : (isDone ? Colors.red : Colors.indigo),
-                    minHeight: 8,
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  if (finalUrl != null) ...[
-                    const SizedBox(height: 12),
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.grey.shade100,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text('المسار: $finalUrl', style: const TextStyle(fontSize: 11, color: Colors.grey)),
-                    ),
-                  ],
-                ],
-              ),
-              actions: [
-                if (isDone)
-                  ElevatedButton(
-                    onPressed: () => Navigator.of(dialogCtx).pop(),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: isSuccess ? Colors.green : AppTheme.primary,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    ),
-                    child: const Text('إغلاق', style: TextStyle(color: Colors.white)),
-                  ),
-              ],
-            );
-          },
-        );
-      },
-    );
   }
 
   @override
@@ -356,14 +226,6 @@ class CustomerProfileView extends StatelessWidget {
                         const SnackBar(content: Text('خدمة العملاء متاحة على مدار الساعة')),
                       );
                     },
-                  ),
-                  const Divider(height: 16),
-                  _buildActionTile(
-                    icon: Icons.cloud_upload_outlined,
-                    title: 'اختبار رفع الملفات المجزأة (Chunked Upload)',
-                    subtitle: 'تجربة رفع ملف تجريبي بحجم 4 ميجابايت على أجزاء',
-                    color: Colors.indigo,
-                    onTap: () => _testChunkedUpload(context),
                   ),
                   const Divider(height: 16),
                   _buildActionTile(
