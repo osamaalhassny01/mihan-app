@@ -4,6 +4,7 @@ import 'config/app_theme.dart';
 import 'controllers/auth_controller.dart';
 import 'controllers/customer_controller.dart';
 import 'controllers/provider_controller.dart';
+import 'controllers/mahir_controller.dart';
 import 'views/auth/splash_view.dart';
 
 void main() {
@@ -21,6 +22,7 @@ class MihanPlatformApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => AuthController()),
         ChangeNotifierProvider(create: (_) => CustomerController()),
         ChangeNotifierProvider(create: (_) => ProviderController()),
+        ChangeNotifierProvider(create: (_) => MahirController()),
       ],
       child: MaterialApp(
         title: 'مِهَن',

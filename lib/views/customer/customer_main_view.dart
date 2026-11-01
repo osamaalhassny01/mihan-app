@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../config/app_theme.dart';
+import '../mahir/mahir_hub_view.dart';
 import 'customer_home_view.dart';
 import 'customer_requests_view.dart';
 import 'customer_profile_view.dart';
@@ -16,6 +17,7 @@ class _CustomerMainViewState extends State<CustomerMainView> {
 
   final List<Widget> _pages = const [
     CustomerHomeView(),
+    MahirHubView(),
     CustomerRequestsView(),
     CustomerProfileView(),
   ];
@@ -46,15 +48,21 @@ class _CustomerMainViewState extends State<CustomerMainView> {
             onTap: (index) => setState(() => _currentIndex = index),
             selectedItemColor: AppTheme.primary,
             unselectedItemColor: AppTheme.textSecondary,
-            selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
-            unselectedLabelStyle: const TextStyle(fontSize: 11),
+            selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11),
+            unselectedLabelStyle: const TextStyle(fontSize: 10.5),
             backgroundColor: Colors.white,
+            type: BottomNavigationBarType.fixed,
             elevation: 0,
             items: const [
               BottomNavigationBarItem(
                 icon: Icon(Icons.home_outlined),
                 activeIcon: Icon(Icons.home_rounded),
                 label: 'الرئيسية',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.school_outlined),
+                activeIcon: Icon(Icons.school_rounded),
+                label: 'تعلّم مع ماهر',
               ),
               BottomNavigationBarItem(
                 icon: Icon(Icons.receipt_long_outlined),
