@@ -109,7 +109,11 @@ class MahirController extends ChangeNotifier {
       notifyListeners();
       return true;
     } else {
-      _errorMessage = result.errorMessage ?? 'تعذر بدء الجلسة مع ماهر';
+      _errorMessage = result.errorMessage ?? 'تعذر بدء الجلسة مع ماهر. تحقق من اتصال السيرفر.';
+      _messages.add(MahirMessageModel(
+        role: 'assistant',
+        content: '⚠️ تعذر الاتصال بسيرفر ماهر AI: ${_errorMessage!}\nيرجى المحاولة مجدداً بالضغط على زر التحديث في الأعلى.',
+      ));
       notifyListeners();
       return false;
     }
@@ -118,11 +122,11 @@ class MahirController extends ChangeNotifier {
   /// إرسال رسالة لماهر AI
   Future<bool> sendMessage(String text) async {
     final cleanText = text.trim();
-    if (cleanText.isEmpty || _sessionToken == null || _isSending) {
+    if (cleanText.isEmpty || _isSending) {
       return false;
     }
 
-    // إضافة رسالة المستخدم فوراً للواجهة
+    // إضافة رسالة المستخدم فوراً للواجهة حتى تظهر أمامه دائماً
     _messages.add(MahirMessageModel(
       role: 'user',
       content: cleanText,
@@ -130,6 +134,25 @@ class MahirController extends ChangeNotifier {
     _isSending = true;
     _errorMessage = null;
     notifyListeners();
+
+    // إذا كانت الجلسة غير مهيأة بعد، نحاول تهيئتها أولاً تلقائياً
+    if (_sessionToken == null) {
+      final sessionInit = await MahirService.startSession(
+        professionId: _currentProfession?.id,
+      );
+      if (sessionInit.success && sessionInit.sessionToken != null) {
+        _sessionToken = sessionInit.sessionToken;
+      } else {
+        _isSending = false;
+        _errorMessage = sessionInit.errorMessage ?? 'تعذر الاتصال بالخادم';
+        _messages.add(MahirMessageModel(
+          role: 'assistant',
+          content: '⚠️ تعذر بدء الاتصال بالخادم لإرسال استفسارك: ${_errorMessage!}',
+        ));
+        notifyListeners();
+        return false;
+      }
+    }
 
     final res = await MahirService.sendMessage(
       sessionToken: _sessionToken!,
@@ -150,7 +173,7 @@ class MahirController extends ChangeNotifier {
       _errorMessage = res.message.isNotEmpty ? res.message : 'لم يتمكن ماهر من الرد حالياً';
       _messages.add(MahirMessageModel(
         role: 'assistant',
-        content: '⚠️ عذراً، حدث خطأ أثناء معالجة ردك: ${_errorMessage!}',
+        content: '⚠️ عذراً، لم نتمكن من استلام إجابة ماهر: ${_errorMessage!}\nيرجى إعادة المحاولة.',
       ));
       notifyListeners();
       return false;
@@ -168,4 +191,3 @@ class MahirController extends ChangeNotifier {
     notifyListeners();
   }
 }
-

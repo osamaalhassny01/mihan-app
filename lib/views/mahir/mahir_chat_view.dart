@@ -25,6 +25,23 @@ class _MahirChatViewState extends State<MahirChatView> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final mahir = context.read<MahirController>();
+      if (mahir.sessionToken == null && !mahir.isChatLoading) {
+        if (widget.profession != null) {
+          mahir.startChatForProfession(widget.profession!).then((_) => _scrollToBottom());
+        } else {
+          mahir.startGeneralChat().then((_) => _scrollToBottom());
+        }
+      } else {
+        _scrollToBottom();
+      }
+    });
+  }
+
+  @override
   void dispose() {
     _textController.dispose();
     _scrollController.dispose();
@@ -122,7 +139,7 @@ class _MahirChatViewState extends State<MahirChatView> {
         ),
         actions: [
           IconButton(
-            tooltip: 'إعادة بدء الجلسة',
+            tooltip: 'إعادة الاتصال / بدء جلسة جديدة',
             icon: const Icon(Icons.refresh_rounded),
             onPressed: () {
               if (profession != null) {
