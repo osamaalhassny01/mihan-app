@@ -165,7 +165,12 @@ class ApiService {
     }
   }
 
-  static Future<ApiResponse> post(String endpoint, Map<String, dynamic> body, {bool withAuth = true}) async {
+  static Future<ApiResponse> post(
+    String endpoint,
+    Map<String, dynamic> body, {
+    bool withAuth = true,
+    Duration? customTimeout,
+  }) async {
     try {
       final baseUrl = await StorageService.getBaseUrl();
       final uri = Uri.parse('$baseUrl$endpoint');
@@ -175,7 +180,7 @@ class ApiService {
         uri,
         headers: headers,
         body: jsonEncode(body),
-      ).timeout(_timeout);
+      ).timeout(customTimeout ?? _timeout);
 
       return _parseResponse(response);
     } on SocketException catch (e) {

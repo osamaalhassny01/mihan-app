@@ -99,6 +99,7 @@ class MahirService {
         'message': message,
       },
       withAuth: false,
+      customTimeout: const Duration(seconds: 60),
     );
   }
 
