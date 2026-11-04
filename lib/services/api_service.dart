@@ -133,6 +133,8 @@ class ApiService {
       final token = await StorageService.getToken();
       if (token != null && token.isNotEmpty) {
         headers['Authorization'] = 'Bearer $token';
+        headers['X-Authorization'] = 'Bearer $token';
+        headers['X-Auth-Token'] = token;
       }
     }
     return headers;
@@ -141,8 +143,19 @@ class ApiService {
   static Future<ApiResponse> get(String endpoint, {bool withAuth = true}) async {
     try {
       final baseUrl = await StorageService.getBaseUrl();
-      final uri = Uri.parse('$baseUrl$endpoint');
+      var uri = Uri.parse('$baseUrl$endpoint');
       final headers = await _headers(withAuth);
+
+      if (withAuth) {
+        final token = await StorageService.getToken();
+        if (token != null && token.isNotEmpty) {
+          final queryParams = Map<String, String>.from(uri.queryParameters);
+          if (!queryParams.containsKey('auth_token')) {
+            queryParams['auth_token'] = token;
+            uri = uri.replace(queryParameters: queryParams);
+          }
+        }
+      }
 
       final response = await http.get(uri, headers: headers).timeout(_timeout);
       return _parseResponse(response);
@@ -176,10 +189,18 @@ class ApiService {
       final uri = Uri.parse('$baseUrl$endpoint');
       final headers = await _headers(withAuth);
 
+      Map<String, dynamic> finalBody = Map.from(body);
+      if (withAuth) {
+        final token = await StorageService.getToken();
+        if (token != null && token.isNotEmpty && !finalBody.containsKey('auth_token')) {
+          finalBody['auth_token'] = token;
+        }
+      }
+
       final response = await http.post(
         uri,
         headers: headers,
-        body: jsonEncode(body),
+        body: jsonEncode(finalBody),
       ).timeout(customTimeout ?? _timeout);
 
       return _parseResponse(response);
