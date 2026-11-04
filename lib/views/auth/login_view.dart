@@ -5,6 +5,7 @@ import '../../config/api_config.dart';
 import '../../controllers/auth_controller.dart';
 import '../../services/api_service.dart';
 import '../../services/storage_service.dart';
+import '../../services/notification_service.dart';
 import '../widgets/presentation_widgets.dart';
 import 'register_view.dart';
 import '../customer/customer_main_view.dart';
@@ -387,17 +388,43 @@ class _LoginViewState extends State<LoginView> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // Top Live Server Pill
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: ServerStatusBadge(
-                      isConnected: _isServerConnected,
-                      isChecking: _isCheckingServer,
-                      latencyMs: _serverLatencyMs,
-                      url: _currentServerUrl,
-                      onTap: () => _showServerSettings(context),
-                      onRefresh: () => _checkServerConnectivity(),
-                    ),
+                  // Top Status & Actions Bar
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      ServerStatusBadge(
+                        isConnected: _isServerConnected,
+                        isChecking: _isCheckingServer,
+                        latencyMs: _serverLatencyMs,
+                        url: _currentServerUrl,
+                        onTap: () => _showServerSettings(context),
+                        onRefresh: () => _checkServerConnectivity(),
+                      ),
+                      IconButton(
+                        tooltip: 'اختبار الإشعارات محلياً',
+                        icon: Container(
+                          padding: const EdgeInsets.all(7),
+                          decoration: BoxDecoration(
+                            color: AppTheme.primary.withValues(alpha: 0.08),
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(color: AppTheme.border),
+                          ),
+                          child: const Icon(Icons.notifications_active_outlined, size: 20, color: AppTheme.primary),
+                        ),
+                        onPressed: () async {
+                          await NotificationService.testNotificationLocally();
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('تم إرسال إشعار تجريبي للجهاز بنجاح 🔔'),
+                                backgroundColor: AppTheme.primary,
+                                duration: Duration(seconds: 2),
+                              ),
+                            );
+                          }
+                        },
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 20),
 

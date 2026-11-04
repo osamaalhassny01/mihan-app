@@ -45,6 +45,69 @@ class _CreateRequestViewState extends State<CreateRequestView> {
     super.dispose();
   }
 
+  Future<void> _selectDate(BuildContext context) async {
+    final now = DateTime.now();
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: now,
+      firstDate: now,
+      lastDate: now.add(const Duration(days: 90)),
+      helpText: 'اختر التاريخ المناسب للزيارة',
+      confirmText: 'تأكيد',
+      cancelText: 'إلغاء',
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.light(
+              primary: AppTheme.primary,
+              onPrimary: Colors.white,
+              onSurface: AppTheme.textPrimary,
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+
+    if (picked != null) {
+      final formatted = '${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}';
+      setState(() {
+        _dateController.text = formatted;
+      });
+    }
+  }
+
+  Future<void> _selectTime(BuildContext context) async {
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.now(),
+      helpText: 'اختر الوقت الأنسب للزيارة',
+      confirmText: 'تأكيد',
+      cancelText: 'إلغاء',
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.light(
+              primary: AppTheme.primary,
+              onPrimary: Colors.white,
+              onSurface: AppTheme.textPrimary,
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+
+    if (picked != null) {
+      final hour = picked.hour.toString().padLeft(2, '0');
+      final minute = picked.minute.toString().padLeft(2, '0');
+      final formatted = '$hour:$minute:00';
+      setState(() {
+        _timeController.text = formatted;
+      });
+    }
+  }
+
   void _onSubmit(BuildContext context) async {
     if (_selectedServiceId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -223,24 +286,28 @@ class _CreateRequestViewState extends State<CreateRequestView> {
                         ),
                         const SizedBox(height: 18),
 
-                        // Date & Time
+                        // Date & Time Picker
                         Row(
                           children: [
                             Expanded(
                               child: CustomTextField(
                                 label: 'التاريخ المفضل للزيارة',
-                                hint: 'مثال: 2026-11-01',
+                                hint: 'اضغط لاختيار التاريخ',
                                 controller: _dateController,
-                                prefixIcon: Icons.calendar_today_outlined,
+                                prefixIcon: Icons.calendar_today_rounded,
+                                readOnly: true,
+                                onTap: () => _selectDate(context),
                               ),
                             ),
                             const SizedBox(width: 12),
                             Expanded(
                               child: CustomTextField(
                                 label: 'الوقت الأنسب',
-                                hint: 'مثال: 10:00 صباحًا',
+                                hint: 'اضغط لاختيار الوقت',
                                 controller: _timeController,
-                                prefixIcon: Icons.access_time_outlined,
+                                prefixIcon: Icons.access_time_rounded,
+                                readOnly: true,
+                                onTap: () => _selectTime(context),
                               ),
                             ),
                           ],
