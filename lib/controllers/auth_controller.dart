@@ -3,6 +3,7 @@ import '../models/user_model.dart';
 import '../models/request_and_provider_models.dart';
 import '../services/api_service.dart';
 import '../services/storage_service.dart';
+import '../services/notification_service.dart';
 
 class AuthController extends ChangeNotifier {
   UserModel? _currentUser;
@@ -75,6 +76,11 @@ class AuthController extends ChangeNotifier {
       _currentUser = UserModel.fromJson(userMap);
       await StorageService.saveUser(_currentUser!);
 
+      final fcmToken = await StorageService.getFcmToken();
+      if (fcmToken != null && fcmToken.isNotEmpty) {
+        NotificationService.syncTokenWithBackend(fcmToken);
+      }
+
       if (res.data['provider_profile'] != null) {
         _providerProfile = ProviderProfileModel.fromJson(res.data['provider_profile']);
       }
@@ -116,6 +122,11 @@ class AuthController extends ChangeNotifier {
       final userMap = res.data['user'] as Map<String, dynamic>;
       _currentUser = UserModel.fromJson(userMap);
       await StorageService.saveUser(_currentUser!);
+
+      final fcmToken = await StorageService.getFcmToken();
+      if (fcmToken != null && fcmToken.isNotEmpty) {
+        NotificationService.syncTokenWithBackend(fcmToken);
+      }
 
       if (res.data['provider_profile'] != null) {
         _providerProfile = ProviderProfileModel.fromJson(res.data['provider_profile']);

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "413682830139",
+    "project_id": "mihan-89053",
+    "storage_bucket": "mihan-89053.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:413682830139:android:c15d446d2e45b70075051e",
+        "android_client_info": {
+          "package_name": "com.mihan.platform.mihan_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCUBj6CFiAW4M5RHe_2tC-snKoqo3LrJ_4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

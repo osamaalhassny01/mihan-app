@@ -5,10 +5,12 @@ import 'controllers/auth_controller.dart';
 import 'controllers/customer_controller.dart';
 import 'controllers/provider_controller.dart';
 import 'controllers/mahir_controller.dart';
+import 'services/notification_service.dart';
 import 'views/auth/splash_view.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await NotificationService.initialize();
   runApp(const MihanPlatformApp());
 }
 

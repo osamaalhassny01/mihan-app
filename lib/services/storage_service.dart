@@ -7,6 +7,17 @@ class StorageService {
   static const String _keyToken = 'auth_token';
   static const String _keyUser = 'auth_user';
   static const String _keyBaseUrl = 'api_base_url';
+  static const String _keyFcmToken = 'fcm_token';
+
+  static Future<void> saveFcmToken(String token) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_keyFcmToken, token);
+  }
+
+  static Future<String?> getFcmToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_keyFcmToken);
+  }
 
   static Future<void> saveToken(String token) async {
     final prefs = await SharedPreferences.getInstance();
