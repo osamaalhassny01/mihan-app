@@ -10,12 +10,12 @@ android {
     namespace = "com.mihan.platform.mihan_app"
     compileSdk = flutter.compileSdkVersion
 
-    // Use local NDK 29 if installed locally, otherwise use flutter.ndkVersion for CI/CD runners
+    // Use local NDK 29 if installed locally, otherwise use NDK 27 for CI/CD runners (required by Firebase)
     val localNdk29 = file("${android.sdkDirectory}/ndk/29.0.13113456")
     if (localNdk29.exists()) {
         ndkVersion = "29.0.13113456"
     } else {
-        ndkVersion = flutter.ndkVersion
+        ndkVersion = "27.0.12077973"
     }
 
     compileOptions {
@@ -32,7 +32,7 @@ android {
         applicationId = "com.mihan.platform.mihan_app"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
-        minSdk = flutter.minSdkVersion
+        minSdk = 24
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
