@@ -5,6 +5,7 @@ import '../../controllers/auth_controller.dart';
 import '../widgets/presentation_widgets.dart';
 import '../auth/login_view.dart';
 import 'provider_application_view.dart';
+import '../customer/complaints_view.dart';
 
 class ProviderProfileView extends StatelessWidget {
   const ProviderProfileView({super.key});
@@ -241,6 +242,35 @@ class ProviderProfileView extends StatelessWidget {
                 onTap: () {
                   Navigator.of(context).push(
                     MaterialPageRoute(builder: (_) => const ProviderApplicationView()),
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: 20),
+
+            // Support & Complaints Button for Provider
+            Container(
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(color: AppTheme.border),
+              ),
+              child: ListTile(
+                leading: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppTheme.secondary.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(Icons.support_agent_rounded, color: AppTheme.secondary),
+                ),
+                title: const Text('الدعم الفني والشكاوى', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                subtitle: const Text('التواصل المباشر مع إدارة المنصة لحل أي مشكلة', style: TextStyle(fontSize: 11.5)),
+                trailing: const Icon(Icons.chevron_left_rounded, color: AppTheme.secondary),
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const ComplaintsView()),
                   );
                 },
               ),

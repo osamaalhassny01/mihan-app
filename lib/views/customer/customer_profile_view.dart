@@ -4,6 +4,7 @@ import '../../config/app_theme.dart';
 import '../../controllers/auth_controller.dart';
 import '../widgets/presentation_widgets.dart';
 import '../auth/login_view.dart';
+import 'complaints_view.dart';
 
 class CustomerProfileView extends StatelessWidget {
   const CustomerProfileView({super.key});
@@ -219,11 +220,11 @@ class CustomerProfileView extends StatelessWidget {
                   _buildActionTile(
                     icon: Icons.support_agent_rounded,
                     title: 'الدعم والمساعدة والشكاوى',
-                    subtitle: 'تواصل مع فريق مِهَن',
+                    subtitle: 'تقديم شكوى ومتابعة الردود مع إدارة المنصة',
                     color: AppTheme.primary,
                     onTap: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('خدمة العملاء متاحة على مدار الساعة')),
+                      Navigator.of(context).push(
+                        MaterialPageRoute(builder: (_) => const ComplaintsView()),
                       );
                     },
                   ),
