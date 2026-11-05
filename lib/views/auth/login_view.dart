@@ -25,6 +25,9 @@ class _LoginViewState extends State<LoginView> {
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
 
+  // Saved accounts state
+  List<Map<String, String>> _savedAccounts = [];
+
   // Server health state
   bool _isCheckingServer = true;
   bool _isServerConnected = false;
@@ -35,6 +38,294 @@ class _LoginViewState extends State<LoginView> {
   void initState() {
     super.initState();
     _checkServerConnectivity();
+    _loadSavedAccounts();
+  }
+
+  Future<void> _loadSavedAccounts() async {
+    var accounts = await StorageService.getSavedAccounts();
+    if (accounts.isEmpty) {
+      final cachedUser = await StorageService.getUser();
+      if (cachedUser != null && cachedUser.email.isNotEmpty) {
+        await StorageService.saveSavedAccount(
+          email: cachedUser.email,
+          name: cachedUser.name,
+          role: cachedUser.role,
+        );
+        accounts = await StorageService.getSavedAccounts();
+      }
+    }
+    if (mounted) {
+      setState(() {
+        _savedAccounts = accounts;
+      });
+    }
+  }
+
+  void _showSavedAccountsSheet() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) => StatefulBuilder(
+        builder: (modalContext, setModalState) {
+          return Container(
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+            ),
+            padding: EdgeInsets.only(
+              top: 20,
+              left: 20,
+              right: 20,
+              bottom: MediaQuery.of(modalContext).viewInsets.bottom + 24,
+            ),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 44,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: AppTheme.border,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: AppTheme.secondary.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Icon(
+                          Icons.manage_accounts_rounded,
+                          color: AppTheme.secondary,
+                          size: 24,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      const Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'المستخدمين المحفوظين في الجهاز',
+                              style: TextStyle(
+                                fontSize: 17,
+                                fontWeight: FontWeight.bold,
+                                color: AppTheme.textPrimary,
+                              ),
+                            ),
+                            Text(
+                              'اختر مستخدماً لملء الحقل تلقائياً',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: AppTheme.textSecondary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      if (_savedAccounts.isNotEmpty)
+                        TextButton(
+                          onPressed: () async {
+                            await StorageService.clearAllSavedAccounts();
+                            await _loadSavedAccounts();
+                            setModalState(() {});
+                          },
+                          child: const Text(
+                            'مسح الكل',
+                            style: TextStyle(color: AppTheme.error, fontSize: 12),
+                          ),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  if (_savedAccounts.isEmpty) ...[
+                    Container(
+                      padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 16),
+                      decoration: BoxDecoration(
+                        color: AppTheme.background,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: AppTheme.border),
+                      ),
+                      child: Column(
+                        children: [
+                          Icon(
+                            Icons.person_outline,
+                            size: 48,
+                            color: AppTheme.textSecondary.withValues(alpha: 0.5),
+                          ),
+                          const SizedBox(height: 12),
+                          const Text(
+                            'لا يوجد مستخدمون محفوظون حالياً',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: AppTheme.textPrimary,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          const Text(
+                            'عند تسجيل الدخول بأي حساب، سيتم حفظه هنا تلقائياً لسرعة الوصول.',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: AppTheme.textSecondary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ] else ...[
+                    ListView.separated(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: _savedAccounts.length,
+                      separatorBuilder: (_, __) => const SizedBox(height: 10),
+                      itemBuilder: (ctx, index) {
+                        final account = _savedAccounts[index];
+                        final email = account['email'] ?? '';
+                        final name = account['name'] ?? email;
+                        final role = account['role'] ?? 'customer';
+
+                        Color roleColor = AppTheme.primary;
+                        String roleLabel = 'عميل مستفيد';
+                        if (role == 'provider') {
+                          roleColor = AppTheme.secondary;
+                          roleLabel = 'مهني / فني خدمة';
+                        } else if (role == 'admin') {
+                          roleColor = Colors.deepPurple;
+                          roleLabel = 'مدير النظام';
+                        } else if (role == 'employee') {
+                          roleColor = Colors.teal;
+                          roleLabel = 'موظف تشغيل';
+                        }
+
+                        final isCurrentSelected = _emailController.text.trim().toLowerCase() == email.toLowerCase();
+
+                        return InkWell(
+                          onTap: () {
+                            setState(() {
+                              _emailController.text = email;
+                            });
+                            Navigator.of(sheetContext).pop();
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('تم اختيار المستخدم: $name'),
+                                backgroundColor: AppTheme.primary,
+                                duration: const Duration(seconds: 1),
+                              ),
+                            );
+                          },
+                          borderRadius: BorderRadius.circular(16),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                            decoration: BoxDecoration(
+                              color: isCurrentSelected
+                                  ? AppTheme.secondary.withValues(alpha: 0.08)
+                                  : AppTheme.background,
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: isCurrentSelected ? AppTheme.secondary : AppTheme.border,
+                                width: isCurrentSelected ? 1.5 : 1,
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                CircleAvatar(
+                                  radius: 20,
+                                  backgroundColor: roleColor.withValues(alpha: 0.15),
+                                  child: Text(
+                                    name.isNotEmpty ? name[0].toUpperCase() : 'U',
+                                    style: TextStyle(
+                                      color: roleColor,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          Flexible(
+                                            child: Text(
+                                              name,
+                                              style: const TextStyle(
+                                                fontSize: 14,
+                                                fontWeight: FontWeight.bold,
+                                                color: AppTheme.textPrimary,
+                                              ),
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ),
+                                          const SizedBox(width: 8),
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                            decoration: BoxDecoration(
+                                              color: roleColor.withValues(alpha: 0.1),
+                                              borderRadius: BorderRadius.circular(6),
+                                            ),
+                                            child: Text(
+                                              roleLabel,
+                                              style: TextStyle(
+                                                fontSize: 10,
+                                                fontWeight: FontWeight.bold,
+                                                color: roleColor,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 3),
+                                      Text(
+                                        email,
+                                        style: const TextStyle(
+                                          fontSize: 12,
+                                          color: AppTheme.textSecondary,
+                                        ),
+                                        textDirection: TextDirection.ltr,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                IconButton(
+                                  icon: const Icon(
+                                    Icons.delete_outline,
+                                    color: AppTheme.error,
+                                    size: 20,
+                                  ),
+                                  tooltip: 'إزالة من المحفوظين',
+                                  onPressed: () async {
+                                    await StorageService.removeSavedAccount(email);
+                                    await _loadSavedAccounts();
+                                    setModalState(() {});
+                                  },
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
   }
 
   @override
@@ -512,13 +803,134 @@ class _LoginViewState extends State<LoginView> {
                     const SizedBox(height: 20),
                   ],
 
-                  // Email Input
-                  CustomTextField(
-                    label: 'البريد الإلكتروني',
-                    hint: 'customer1@mihan.test',
-                    controller: _emailController,
-                    keyboardType: TextInputType.emailAddress,
-                    prefixIcon: Icons.email_outlined,
+                  // Email / Username Input + Saved Users Button
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            'اسم المستخدم أو البريد الإلكتروني',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: AppTheme.textPrimary,
+                            ),
+                          ),
+                          if (_savedAccounts.isNotEmpty)
+                            InkWell(
+                              onTap: _showSavedAccountsSheet,
+                              borderRadius: BorderRadius.circular(6),
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                                child: Text(
+                                  'المحفوظين (${_savedAccounts.length})',
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppTheme.secondary,
+                                  ),
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Expanded(
+                            child: TextField(
+                              controller: _emailController,
+                              keyboardType: TextInputType.emailAddress,
+                              decoration: InputDecoration(
+                                hintText: 'أدخل اسم المستخدم أو البريد الإلكتروني',
+                                hintStyle: const TextStyle(fontSize: 13, color: AppTheme.textSecondary),
+                                prefixIcon: const Icon(Icons.person_outline, color: AppTheme.textSecondary, size: 20),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(14),
+                                  borderSide: const BorderSide(color: AppTheme.border),
+                                ),
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(14),
+                                  borderSide: const BorderSide(color: AppTheme.border),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(14),
+                                  borderSide: const BorderSide(color: AppTheme.primary, width: 1.5),
+                                ),
+                                filled: true,
+                                fillColor: AppTheme.background,
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          // Saved accounts button directly beside the email/user field
+                          Tooltip(
+                            message: 'المستخدمين المحفوظين في الجهاز',
+                            child: InkWell(
+                              onTap: _showSavedAccountsSheet,
+                              borderRadius: BorderRadius.circular(14),
+                              child: Container(
+                                height: 50,
+                                padding: const EdgeInsets.symmetric(horizontal: 12),
+                                decoration: BoxDecoration(
+                                  color: _savedAccounts.isNotEmpty
+                                      ? AppTheme.secondary.withValues(alpha: 0.12)
+                                      : AppTheme.background,
+                                  borderRadius: BorderRadius.circular(14),
+                                  border: Border.all(
+                                    color: _savedAccounts.isNotEmpty
+                                        ? AppTheme.secondary
+                                        : AppTheme.border,
+                                    width: _savedAccounts.isNotEmpty ? 1.5 : 1,
+                                  ),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      Icons.manage_accounts_outlined,
+                                      color: _savedAccounts.isNotEmpty ? AppTheme.secondary : AppTheme.textSecondary,
+                                      size: 22,
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      'المستخدمين',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                        color: _savedAccounts.isNotEmpty ? AppTheme.secondary : AppTheme.textSecondary,
+                                      ),
+                                    ),
+                                    if (_savedAccounts.isNotEmpty) ...[
+                                      const SizedBox(width: 4),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                        decoration: BoxDecoration(
+                                          color: AppTheme.secondary,
+                                          borderRadius: BorderRadius.circular(10),
+                                        ),
+                                        child: Text(
+                                          '${_savedAccounts.length}',
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 16),
 

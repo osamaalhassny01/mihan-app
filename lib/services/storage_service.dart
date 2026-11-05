@@ -8,6 +8,7 @@ class StorageService {
   static const String _keyUser = 'auth_user';
   static const String _keyBaseUrl = 'api_base_url';
   static const String _keyFcmToken = 'fcm_token';
+  static const String _keySavedAccounts = 'saved_accounts';
 
   static Future<void> saveFcmToken(String token) async {
     final prefs = await SharedPreferences.getInstance();
@@ -17,6 +18,57 @@ class StorageService {
   static Future<String?> getFcmToken() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString(_keyFcmToken);
+  }
+
+  static Future<List<Map<String, String>>> getSavedAccounts() async {
+    final prefs = await SharedPreferences.getInstance();
+    final raw = prefs.getString(_keySavedAccounts);
+    if (raw == null || raw.isEmpty) return [];
+    try {
+      final List decoded = jsonDecode(raw);
+      return decoded.map((e) => Map<String, String>.from(e as Map)).toList();
+    } catch (_) {
+      return [];
+    }
+  }
+
+  static Future<void> saveSavedAccount({
+    required String email,
+    required String name,
+    required String role,
+  }) async {
+    if (email.trim().isEmpty) return;
+    final prefs = await SharedPreferences.getInstance();
+    final list = await getSavedAccounts();
+
+    // Remove existing if already present
+    list.removeWhere((item) => (item['email'] ?? '').toLowerCase() == email.trim().toLowerCase());
+
+    // Insert at beginning (most recently used)
+    list.insert(0, {
+      'email': email.trim(),
+      'name': name.trim().isNotEmpty ? name.trim() : email.trim(),
+      'role': role,
+      'saved_at': DateTime.now().toIso8601String(),
+    });
+
+    if (list.length > 10) {
+      list.removeRange(10, list.length);
+    }
+
+    await prefs.setString(_keySavedAccounts, jsonEncode(list));
+  }
+
+  static Future<void> removeSavedAccount(String email) async {
+    final prefs = await SharedPreferences.getInstance();
+    final list = await getSavedAccounts();
+    list.removeWhere((item) => (item['email'] ?? '').toLowerCase() == email.trim().toLowerCase());
+    await prefs.setString(_keySavedAccounts, jsonEncode(list));
+  }
+
+  static Future<void> clearAllSavedAccounts() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_keySavedAccounts);
   }
 
   static Future<void> saveToken(String token) async {

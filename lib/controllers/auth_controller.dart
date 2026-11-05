@@ -75,6 +75,11 @@ class AuthController extends ChangeNotifier {
       final userMap = res.data['user'] as Map<String, dynamic>;
       _currentUser = UserModel.fromJson(userMap);
       await StorageService.saveUser(_currentUser!);
+      await StorageService.saveSavedAccount(
+        email: _currentUser!.email,
+        name: _currentUser!.name,
+        role: _currentUser!.role,
+      );
 
       final fcmToken = await StorageService.getFcmToken();
       if (fcmToken != null && fcmToken.isNotEmpty) {
@@ -122,6 +127,11 @@ class AuthController extends ChangeNotifier {
       final userMap = res.data['user'] as Map<String, dynamic>;
       _currentUser = UserModel.fromJson(userMap);
       await StorageService.saveUser(_currentUser!);
+      await StorageService.saveSavedAccount(
+        email: _currentUser!.email,
+        name: _currentUser!.name,
+        role: _currentUser!.role,
+      );
 
       final fcmToken = await StorageService.getFcmToken();
       if (fcmToken != null && fcmToken.isNotEmpty) {

@@ -2,10 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../config/app_theme.dart';
 import '../../controllers/auth_controller.dart';
-import '../customer/customer_main_view.dart';
-import '../provider/provider_main_view.dart';
-import '../employee/employee_main_view.dart';
-import '../admin/admin_main_view.dart';
 import 'login_view.dart';
 
 class SplashView extends StatefulWidget {
@@ -47,18 +43,7 @@ class _SplashViewState extends State<SplashView> with SingleTickerProviderStateM
     return Consumer<AuthController>(
       builder: (context, auth, _) {
         if (auth.isInitialized) {
-          // Keep logged in user session active - only show login if not authenticated
-          if (auth.isAuthenticated) {
-            if (auth.isCustomer) {
-              return const CustomerMainView();
-            } else if (auth.isProvider) {
-              return const ProviderMainView();
-            } else if (auth.isEmployee) {
-              return const EmployeeMainView();
-            } else if (auth.isAdmin) {
-              return const AdminMainView();
-            }
-          }
+          // Open LoginView on launch with saved accounts picker as requested
           return const LoginView();
         }
 
