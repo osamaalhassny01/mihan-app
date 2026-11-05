@@ -241,7 +241,14 @@ class _ProviderRequestsViewState extends State<ProviderRequestsView> {
                                           Expanded(
                                             child: ElevatedButton(
                                               style: ElevatedButton.styleFrom(backgroundColor: AppTheme.secondary),
-                                              onPressed: () => provider.acceptRequest(req.id),
+                                              onPressed: () async {
+                                                final ok = await provider.acceptRequest(req.id);
+                                                if (ok && context.mounted) {
+                                                  ScaffoldMessenger.of(context).showSnackBar(
+                                                    const SnackBar(content: Text('تم قبول الطلب بنجاح!'), backgroundColor: AppTheme.success),
+                                                  );
+                                                }
+                                              },
                                               child: const Text('قبول الطلب'),
                                             ),
                                           ),
@@ -249,7 +256,14 @@ class _ProviderRequestsViewState extends State<ProviderRequestsView> {
                                           Expanded(
                                             child: OutlinedButton(
                                               style: OutlinedButton.styleFrom(foregroundColor: AppTheme.error),
-                                              onPressed: () => provider.rejectRequest(req.id),
+                                              onPressed: () async {
+                                                final ok = await provider.rejectRequest(req.id);
+                                                if (ok && context.mounted) {
+                                                  ScaffoldMessenger.of(context).showSnackBar(
+                                                    const SnackBar(content: Text('تم رفض واستبعاد الطلب من قائمتك')),
+                                                  );
+                                                }
+                                              },
                                               child: const Text('رفض'),
                                             ),
                                           ),

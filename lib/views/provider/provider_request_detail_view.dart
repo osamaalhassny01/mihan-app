@@ -171,7 +171,14 @@ class _ProviderRequestDetailViewState extends State<ProviderRequestDetailView> {
                                 style: ElevatedButton.styleFrom(backgroundColor: AppTheme.secondary),
                                 icon: const Icon(Icons.check, color: Colors.white),
                                 label: const Text('قبول الطلب'),
-                                onPressed: () => provider.acceptRequest(req.id),
+                                onPressed: () async {
+                                  final ok = await provider.acceptRequest(req.id);
+                                  if (ok && context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(content: Text('تم قبول الطلب بنجاح!'), backgroundColor: AppTheme.success),
+                                    );
+                                  }
+                                },
                               ),
                             ),
                             const SizedBox(width: 12),
@@ -180,7 +187,15 @@ class _ProviderRequestDetailViewState extends State<ProviderRequestDetailView> {
                                 style: OutlinedButton.styleFrom(foregroundColor: AppTheme.error),
                                 icon: const Icon(Icons.close, color: AppTheme.error),
                                 label: const Text('رفض الطلب'),
-                                onPressed: () => provider.rejectRequest(req.id),
+                                onPressed: () async {
+                                  final ok = await provider.rejectRequest(req.id);
+                                  if (ok && context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(content: Text('تم رفض واستبعاد الطلب بنجاح')),
+                                    );
+                                    Navigator.of(context).pop();
+                                  }
+                                },
                               ),
                             ),
                           ],
