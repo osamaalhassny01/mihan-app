@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../config/app_theme.dart';
+import '../../config/currency_helper.dart';
 import '../../controllers/customer_controller.dart';
 import '../widgets/presentation_widgets.dart';
 
@@ -179,7 +180,7 @@ class _CustomerRequestDetailViewState extends State<CustomerRequestDetailView> {
                             _buildInfoRow(Icons.calendar_today_rounded, 'تاريخ وتوقيت الطلب:', req.createdAt, AppTheme.primary),
                             if (req.budget != null) ...[
                               const SizedBox(height: 12),
-                              _buildInfoRow(Icons.payments_outlined, 'الميزانية المقترحة:', '${req.budget} ريال', Colors.teal),
+                              _buildInfoRow(Icons.payments_outlined, 'الميزانية المقترحة:', CurrencyHelper.format(req.budget), Colors.teal),
                             ],
                           ],
                         ),
@@ -325,13 +326,13 @@ class _CustomerRequestDetailViewState extends State<CustomerRequestDetailView> {
                                 ],
                               ),
                               const Divider(height: 24),
-                              _buildInfoRow(Icons.calculate_outlined, 'إجمالي قيمة الخدمة:', '${inv.totalAmount} ريال', AppTheme.textPrimary),
+                              _buildInfoRow(Icons.calculate_outlined, 'إجمالي قيمة الخدمة:', CurrencyHelper.format(inv.totalAmount), AppTheme.textPrimary),
                               const SizedBox(height: 10),
-                              _buildInfoRow(Icons.account_balance_wallet_outlined, 'المبلغ المتبقي:', '${inv.balance} ريال', inv.isPaid ? AppTheme.success : AppTheme.error),
+                              _buildInfoRow(Icons.account_balance_wallet_outlined, 'المبلغ المتبقي:', CurrencyHelper.format(inv.balance), inv.isPaid ? AppTheme.success : AppTheme.error),
                               if (!inv.isPaid && inv.balance > 0) ...[
                                 const SizedBox(height: 20),
                                 CustomButton(
-                                  text: 'سداد الفاتورة الآن (${inv.balance} ريال)',
+                                  text: 'سداد الفاتورة الآن (${CurrencyHelper.format(inv.balance)})',
                                   icon: Icons.credit_card_rounded,
                                   isLoading: customer.isPaying,
                                   onPressed: () => customer.payInvoice(inv.id),

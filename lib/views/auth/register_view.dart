@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../config/app_theme.dart';
 import '../../controllers/auth_controller.dart';
+import '../../models/catalog_models.dart';
+import '../../services/api_service.dart';
 import '../widgets/presentation_widgets.dart';
 import '../customer/customer_main_view.dart';
 import '../provider/provider_main_view.dart';
@@ -20,12 +22,31 @@ class _RegisterViewState extends State<RegisterView> {
   final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
-  final _professionController = TextEditingController(text: 'فني خدمات عامة');
   final _roleDetailController = TextEditingController(text: 'دعم ومتابعة العمليات');
   bool _obscurePassword = true;
 
+  // Selected Service for Provider (optional dropdown from catalog)
+  int? _selectedServiceId;
+  String? _selectedServiceName;
+  List<ServiceModel> _availableServices = [];
+
   // Supports all 4 platform roles: 'customer', 'provider', 'employee', 'admin'
   String _selectedRole = 'customer';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadServicesCatalog();
+  }
+
+  Future<void> _loadServicesCatalog() async {
+    final res = await ApiService.get('/api/services');
+    if (res.success && res.data is List && mounted) {
+      setState(() {
+        _availableServices = (res.data as List).map((s) => ServiceModel.fromJson(s)).toList();
+      });
+    }
+  }
 
   @override
   void dispose() {
@@ -33,7 +54,6 @@ class _RegisterViewState extends State<RegisterView> {
     _emailController.dispose();
     _phoneController.dispose();
     _passwordController.dispose();
-    _professionController.dispose();
     _roleDetailController.dispose();
     super.dispose();
   }
@@ -44,7 +64,7 @@ class _RegisterViewState extends State<RegisterView> {
     final phone = _phoneController.text.trim();
     final password = _passwordController.text;
     final profession = _selectedRole == 'provider'
-        ? _professionController.text.trim()
+        ? (_selectedServiceName ?? 'خدمات فنية عامة')
         : _roleDetailController.text.trim();
 
     if (name.isEmpty || email.isEmpty || phone.isEmpty || password.isEmpty) {
@@ -371,13 +391,57 @@ class _RegisterViewState extends State<RegisterView> {
                         ),
                         const SizedBox(height: 14),
 
-                        // Role specific field
+                        // Role specific field (Dropdown for provider)
                         if (_selectedRole == 'provider') ...[
-                          CustomTextField(
-                            label: 'المهنة أو التخصص الفني',
-                            hint: 'مثال: فني سباكة، كهربائي منازل، تكييف وتبريد',
-                            controller: _professionController,
-                            prefixIcon: Icons.build_outlined,
+                          const Row(
+                            children: [
+                              Icon(Icons.build_outlined, size: 18, color: AppTheme.secondary),
+                              SizedBox(width: 6),
+                              Text(
+                                'الخدمة / التخصص الفني (اختياري)',
+                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppTheme.textPrimary),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 6),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF8FAFC),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: AppTheme.border),
+                            ),
+                            child: DropdownButtonHideUnderline(
+                              child: DropdownButton<int?>(
+                                isExpanded: true,
+                                icon: const Icon(Icons.keyboard_arrow_down_rounded, color: AppTheme.secondary),
+                                hint: const Text('اختر التخصص من الخدمات المتاحة (اختياري)', style: TextStyle(fontSize: 13)),
+                                value: _selectedServiceId,
+                                items: [
+                                  const DropdownMenuItem<int?>(
+                                    value: null,
+                                    child: Text('خدمات فنية عامة (تحديد لاحقاً)', style: TextStyle(fontSize: 13, color: AppTheme.textSecondary)),
+                                  ),
+                                  ..._availableServices.map((s) {
+                                    return DropdownMenuItem<int?>(
+                                      value: s.id,
+                                      child: Text(s.nameAr, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+                                    );
+                                  }),
+                                ],
+                                onChanged: (val) {
+                                  setState(() {
+                                    _selectedServiceId = val;
+                                    if (val != null) {
+                                      final matched = _availableServices.firstWhere((s) => s.id == val);
+                                      _selectedServiceName = matched.nameAr;
+                                    } else {
+                                      _selectedServiceName = null;
+                                    }
+                                  });
+                                },
+                              ),
+                            ),
                           ),
                           const SizedBox(height: 14),
                         ] else if (_selectedRole == 'employee') ...[

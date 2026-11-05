@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../config/app_theme.dart';
+import '../../config/currency_helper.dart';
 import '../../controllers/provider_controller.dart';
 import '../widgets/presentation_widgets.dart';
 
@@ -50,7 +51,7 @@ class _ProviderFinanceViewState extends State<ProviderFinanceView> {
                         Expanded(
                           child: StatCard(
                             title: 'صافي الأرباح',
-                            value: '${fin?.providerNetAmount ?? 0} ريال',
+                            value: CurrencyHelper.format(fin?.providerNetAmount),
                             icon: Icons.account_balance_wallet,
                             color: AppTheme.success,
                           ),
@@ -59,7 +60,7 @@ class _ProviderFinanceViewState extends State<ProviderFinanceView> {
                         Expanded(
                           child: StatCard(
                             title: 'المبالغ المستلمة',
-                            value: '${fin?.paidAmount ?? 0} ريال',
+                            value: CurrencyHelper.format(fin?.paidAmount),
                             icon: Icons.payments_outlined,
                             color: AppTheme.secondary,
                           ),
@@ -72,7 +73,7 @@ class _ProviderFinanceViewState extends State<ProviderFinanceView> {
                         Expanded(
                           child: StatCard(
                             title: 'إجمالي الأعمال',
-                            value: '${fin?.grossAmount ?? 0} ريال',
+                            value: CurrencyHelper.format(fin?.grossAmount),
                             icon: Icons.receipt_long_outlined,
                             color: AppTheme.primary,
                           ),
@@ -81,7 +82,7 @@ class _ProviderFinanceViewState extends State<ProviderFinanceView> {
                         Expanded(
                           child: StatCard(
                             title: 'رصيد معلق',
-                            value: '${fin?.outstandingAmount ?? 0} ريال',
+                            value: CurrencyHelper.format(fin?.outstandingAmount),
                             icon: Icons.hourglass_empty,
                             color: AppTheme.warning,
                           ),
@@ -150,7 +151,7 @@ class _ProviderFinanceViewState extends State<ProviderFinanceView> {
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
                                     const Text('قيمة الخدمة:', style: TextStyle(color: AppTheme.textSecondary, fontSize: 13)),
-                                    Text('${inv['service_price'] ?? 0} ريال', style: const TextStyle(fontSize: 13)),
+                                    Text(CurrencyHelper.format(inv['service_price']), style: const TextStyle(fontSize: 13)),
                                   ],
                                 ),
                                 const SizedBox(height: 4),
@@ -158,7 +159,7 @@ class _ProviderFinanceViewState extends State<ProviderFinanceView> {
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
                                     const Text('عمولة المنصة:', style: TextStyle(color: AppTheme.textSecondary, fontSize: 13)),
-                                    Text('-${inv['commission_amount'] ?? 0} ريال', style: const TextStyle(color: AppTheme.error, fontSize: 13)),
+                                    Text('-${CurrencyHelper.format(inv['commission_amount'])}', style: const TextStyle(color: AppTheme.error, fontSize: 13)),
                                   ],
                                 ),
                                 const SizedBox(height: 6),
@@ -167,7 +168,7 @@ class _ProviderFinanceViewState extends State<ProviderFinanceView> {
                                   children: [
                                     const Text('صافي مستحقك:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
                                     Text(
-                                      '${inv['provider_net'] ?? 0} ريال',
+                                      CurrencyHelper.format(inv['provider_net']),
                                       style: const TextStyle(fontWeight: FontWeight.bold, color: AppTheme.success, fontSize: 15),
                                     ),
                                   ],

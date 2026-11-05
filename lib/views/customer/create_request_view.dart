@@ -16,7 +16,6 @@ class CreateRequestView extends StatefulWidget {
 class _CreateRequestViewState extends State<CreateRequestView> {
   int? _selectedServiceId;
   int? _selectedLocationId;
-  int? _selectedProviderId;
   final _descriptionController = TextEditingController();
   final _dateController = TextEditingController();
   final _timeController = TextEditingController();
@@ -129,7 +128,6 @@ class _CreateRequestViewState extends State<CreateRequestView> {
     final success = await ctrl.createRequest(
       serviceId: _selectedServiceId!,
       locationId: _selectedLocationId,
-      providerId: _selectedProviderId,
       description: desc,
       preferredDate: _dateController.text.trim().isNotEmpty ? _dateController.text.trim() : null,
       preferredTime: _timeController.text.trim().isNotEmpty ? _timeController.text.trim() : null,
@@ -274,51 +272,6 @@ class _CreateRequestViewState extends State<CreateRequestView> {
                                 );
                               }).toList(),
                               onChanged: (val) => setState(() => _selectedLocationId = val),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 18),
-
-                        // Optional Specific Provider Selector
-                        const Row(
-                          children: [
-                            Icon(Icons.person_pin_circle_outlined, size: 18, color: AppTheme.accent),
-                            SizedBox(width: 6),
-                            Text(
-                              'اختيار مقدم خدمة محدد (اختياري)',
-                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5, color: AppTheme.textPrimary),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFF8FAFC),
-                            borderRadius: BorderRadius.circular(14),
-                            border: Border.all(color: AppTheme.border),
-                          ),
-                          child: DropdownButtonHideUnderline(
-                            child: DropdownButton<int?>(
-                              isExpanded: true,
-                              icon: const Icon(Icons.keyboard_arrow_down_rounded, color: AppTheme.secondary),
-                              hint: const Text('أي مقدم خدمة متاح (افتراضي)', style: TextStyle(fontSize: 13)),
-                              value: _selectedProviderId,
-                              items: [
-                                const DropdownMenuItem<int?>(
-                                  value: null,
-                                  child: Text('أي مقدم خدمة متاح (بث للجميع)', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13.5, color: AppTheme.primary)),
-                                ),
-                                ...customer.availableProviders.map((p) {
-                                  final name = p.providerName ?? 'مقدم خدمة #${p.id}';
-                                  final prof = p.profession.isNotEmpty ? ' (${p.profession})' : '';
-                                  return DropdownMenuItem<int?>(
-                                    value: p.id,
-                                    child: Text('$name$prof', style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13.5)),
-                                  );
-                                }),
-                              ],
-                              onChanged: (val) => setState(() => _selectedProviderId = val),
                             ),
                           ),
                         ),

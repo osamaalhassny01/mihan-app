@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../config/app_theme.dart';
+import '../../config/currency_helper.dart';
 import '../../controllers/auth_controller.dart';
 import '../../controllers/provider_controller.dart';
 import '../widgets/presentation_widgets.dart';
@@ -301,7 +302,7 @@ class _ProviderDashboardViewState extends State<ProviderDashboardView> {
                                 style: TextStyle(color: AppTheme.textSecondary),
                               ),
                               Text(
-                                '${fin?['gross_amount'] ?? 0} ريال',
+                                CurrencyHelper.format(fin?['gross_amount']),
                                 style: const TextStyle(
                                   fontWeight: FontWeight.bold,
                                 ),
@@ -317,7 +318,7 @@ class _ProviderDashboardViewState extends State<ProviderDashboardView> {
                                 style: TextStyle(color: AppTheme.textSecondary),
                               ),
                               Text(
-                                '${fin?['provider_net_amount'] ?? 0} ريال',
+                                CurrencyHelper.format(fin?['provider_net_amount']),
                                 style: const TextStyle(
                                   fontWeight: FontWeight.bold,
                                   color: AppTheme.success,
@@ -335,7 +336,7 @@ class _ProviderDashboardViewState extends State<ProviderDashboardView> {
                                 style: TextStyle(color: AppTheme.textSecondary),
                               ),
                               Text(
-                                '${fin?['paid_amount'] ?? 0} ريال',
+                                CurrencyHelper.format(fin?['paid_amount']),
                                 style: const TextStyle(
                                   fontWeight: FontWeight.bold,
                                 ),

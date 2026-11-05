@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../config/app_theme.dart';
+import '../../config/currency_helper.dart';
 import '../../controllers/provider_controller.dart';
 import '../widgets/presentation_widgets.dart';
 import 'provider_request_detail_view.dart';
@@ -226,7 +227,7 @@ class _ProviderRequestsViewState extends State<ProviderRequestsView> {
                                         const Spacer(),
                                         if (req.budget != null)
                                           Text(
-                                            '${req.budget} ريال',
+                                            CurrencyHelper.format(req.budget),
                                             style: const TextStyle(fontWeight: FontWeight.bold, color: AppTheme.secondary),
                                           ),
                                       ],

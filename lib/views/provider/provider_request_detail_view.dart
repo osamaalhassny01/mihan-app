@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../config/app_theme.dart';
+import '../../config/currency_helper.dart';
 import '../../controllers/provider_controller.dart';
 import '../widgets/presentation_widgets.dart';
 
@@ -135,7 +136,7 @@ class _ProviderRequestDetailViewState extends State<ProviderRequestDetailView> {
                             _buildInfoRow('تاريخ الطلب:', req.createdAt),
                             if (req.budget != null) ...[
                               const SizedBox(height: 8),
-                              _buildInfoRow('الميزانية المقترحة من العميل:', '${req.budget} ريال'),
+                              _buildInfoRow('الميزانية المقترحة من العميل:', CurrencyHelper.format(req.budget)),
                             ],
                           ],
                         ),
