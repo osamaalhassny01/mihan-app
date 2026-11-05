@@ -21,6 +21,7 @@ class ProviderController extends ChangeNotifier {
 
   bool _isLoading = false;
   bool _isActionLoading = false;
+  bool _needsVerification = false;
   String? _errorMessage;
   String? _successMessage;
 
@@ -32,6 +33,7 @@ class ProviderController extends ChangeNotifier {
   List<dynamic> get requestHistory => _requestHistory;
 
   bool get isAvailable => _isAvailable;
+  bool get needsVerification => _needsVerification;
   List<ServiceModel> get myServices => _myServices;
   List<LocationModel> get myLocations => _myLocations;
   List<LocationModel> get allLocations => _allLocations;
@@ -72,6 +74,7 @@ class ProviderController extends ChangeNotifier {
   Future<void> loadRequests() async {
     _isLoading = true;
     _errorMessage = null;
+    _needsVerification = false;
     notifyListeners();
 
     final res = await ApiService.get('/api/provider/requests');
@@ -79,6 +82,9 @@ class ProviderController extends ChangeNotifier {
       _requests = (res.data as List).map((r) => ServiceRequestModel.fromJson(r)).toList();
     } else {
       _errorMessage = res.message;
+      if (res.statusCode == 403 || res.message.contains('توثيق')) {
+        _needsVerification = true;
+      }
     }
     _isLoading = false;
     notifyListeners();

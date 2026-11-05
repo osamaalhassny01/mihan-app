@@ -4,6 +4,7 @@ import '../../config/app_theme.dart';
 import '../../controllers/provider_controller.dart';
 import '../widgets/presentation_widgets.dart';
 import 'provider_request_detail_view.dart';
+import 'provider_application_view.dart';
 
 class ProviderRequestsView extends StatefulWidget {
   const ProviderRequestsView({super.key});
@@ -111,13 +112,59 @@ class _ProviderRequestsViewState extends State<ProviderRequestsView> {
           Expanded(
             child: provider.isLoading && filteredRequests.isEmpty
                 ? const Center(child: CircularProgressIndicator())
-                : filteredRequests.isEmpty
-                    ? EmptyStateWidget(
-                        icon: Icons.assignment_outlined,
-                        title: 'لا توجد طلبات في هذا القسم',
-                        message: 'ستظهر هنا طلبات العملاء المطابقة لمهنتك ومناطق تغطيتك.',
-                        onRetry: () => provider.loadRequests(),
+                : provider.needsVerification
+                    ? Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(24.0),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(20),
+                                decoration: BoxDecoration(
+                                  color: Colors.amber.shade50,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Icon(Icons.verified_user_outlined, size: 64, color: Colors.amber.shade800),
+                              ),
+                              const SizedBox(height: 20),
+                              const Text(
+                                'التوثيق الإداري مطلوب أولاً',
+                                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
+                              ),
+                              const SizedBox(height: 8),
+                              const Text(
+                                'لا يمكن عرض أو استقبال الطلبات إلا بعد توثيق حسابك ومراجعة بياناتك وشهاداتك المهنية من قبل إدارة المنصة.',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(fontSize: 13, color: AppTheme.textSecondary, height: 1.5),
+                              ),
+                              const SizedBox(height: 24),
+                              ElevatedButton.icon(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: AppTheme.primary,
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                ),
+                                onPressed: () {
+                                  Navigator.of(context).push(
+                                    MaterialPageRoute(builder: (_) => const ProviderApplicationView()),
+                                  ).then((_) => provider.loadRequests());
+                                },
+                                icon: const Icon(Icons.upload_file_rounded),
+                                label: const Text('تقديم / متابعة طلب التوثيق'),
+                              ),
+                            ],
+                          ),
+                        ),
                       )
+                    : filteredRequests.isEmpty
+                        ? EmptyStateWidget(
+                            icon: Icons.assignment_outlined,
+                            title: 'لا توجد طلبات في هذا القسم',
+                            message: 'ستظهر هنا طلبات العملاء المطابقة لمهنتك ومناطق تغطيتك.',
+                            onRetry: () => provider.loadRequests(),
+                          )
                     : RefreshIndicator(
                         onRefresh: () => provider.loadRequests(),
                         child: ListView.separated(
