@@ -4,6 +4,7 @@ import '../../config/app_theme.dart';
 import '../../controllers/auth_controller.dart';
 import '../widgets/presentation_widgets.dart';
 import '../auth/login_view.dart';
+import 'provider_application_view.dart';
 
 class ProviderProfileView extends StatelessWidget {
   const ProviderProfileView({super.key});
@@ -214,6 +215,35 @@ class ProviderProfileView extends StatelessWidget {
                   ),
                 ),
               ],
+            ),
+            const SizedBox(height: 20),
+
+            // Provider Verification / Credentials Button
+            Container(
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(color: AppTheme.primary.withValues(alpha: 0.3)),
+              ),
+              child: ListTile(
+                leading: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppTheme.primary.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(Icons.verified_user_rounded, color: AppTheme.primary),
+                ),
+                title: const Text('طلب التوثيق والاعتماد المهني', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                subtitle: const Text('رفع إثبات المهنة والشهادات لمراجعة الإدارة وتفعيل الحساب', style: TextStyle(fontSize: 11.5)),
+                trailing: const Icon(Icons.chevron_left_rounded, color: AppTheme.secondary),
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const ProviderApplicationView()),
+                  );
+                },
+              ),
             ),
             const SizedBox(height: 20),
 

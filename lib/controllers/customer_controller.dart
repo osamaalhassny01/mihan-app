@@ -8,6 +8,7 @@ class CustomerController extends ChangeNotifier {
   List<CategoryModel> _categories = [];
   List<ServiceModel> _services = [];
   List<LocationModel> _locations = [];
+  List<ProviderProfileModel> _availableProviders = [];
   List<ServiceRequestModel> _requests = [];
 
   Map<String, dynamic>? _dashboardStats;
@@ -27,6 +28,7 @@ class CustomerController extends ChangeNotifier {
   List<CategoryModel> get categories => _categories;
   List<ServiceModel> get services => _services;
   List<LocationModel> get locations => _locations;
+  List<ProviderProfileModel> get availableProviders => _availableProviders;
   List<ServiceRequestModel> get requests => _requests;
   Map<String, dynamic>? get dashboardStats => _dashboardStats;
   ServiceRequestModel? get selectedRequest => _selectedRequest;
@@ -78,6 +80,11 @@ class CustomerController extends ChangeNotifier {
     final srvRes = await ApiService.get('/api/services');
     if (srvRes.success && srvRes.data is List) {
       _services = (srvRes.data as List).map((s) => ServiceModel.fromJson(s)).toList();
+    }
+
+    final provRes = await ApiService.get('/api/providers');
+    if (provRes.success && provRes.data is List) {
+      _availableProviders = (provRes.data as List).map((p) => ProviderProfileModel.fromJson(p)).toList();
     }
 
     _isLoading = false;
@@ -143,6 +150,7 @@ class CustomerController extends ChangeNotifier {
   Future<bool> createRequest({
     required int serviceId,
     int? locationId,
+    int? providerId,
     required String description,
     String? preferredDate,
     String? preferredTime,
@@ -153,7 +161,7 @@ class CustomerController extends ChangeNotifier {
     _errorMessage = null;
     notifyListeners();
 
-    final res = await ApiService.post('/api/customer/requests', {
+    final payload = <String, dynamic>{
       'service_id': serviceId,
       'location_id': locationId,
       'description': description.trim(),
@@ -161,7 +169,12 @@ class CustomerController extends ChangeNotifier {
       'preferred_time': preferredTime,
       'budget': budget,
       'notes': notes,
-    });
+    };
+    if (providerId != null && providerId > 0) {
+      payload['provider_id'] = providerId;
+    }
+
+    final res = await ApiService.post('/api/customer/requests', payload);
 
     _isCreatingRequest = false;
     if (res.success) {
