@@ -65,6 +65,10 @@ class ServiceRequestModel {
   final String? serviceNameAr;
   final String? customerName;
   final String? providerName;
+  final String? providerProfession;
+  final int? providerExperienceYears;
+  final double? providerAvgRating;
+  final bool providerIsVerified;
   final String? locationName;
 
   const ServiceRequestModel({
@@ -84,6 +88,10 @@ class ServiceRequestModel {
     this.serviceNameAr,
     this.customerName,
     this.providerName,
+    this.providerProfession,
+    this.providerExperienceYears,
+    this.providerAvgRating,
+    this.providerIsVerified = false,
     this.locationName,
   });
 
@@ -125,6 +133,10 @@ class ServiceRequestModel {
       serviceNameAr: json['service_name_ar']?.toString() ?? json['service_name']?.toString(),
       customerName: json['customer_name']?.toString(),
       providerName: json['provider_name']?.toString(),
+      providerProfession: json['provider_profession']?.toString(),
+      providerExperienceYears: json['provider_experience_years'] != null ? int.tryParse(json['provider_experience_years'].toString()) : null,
+      providerAvgRating: json['provider_avg_rating'] != null ? double.tryParse(json['provider_avg_rating'].toString()) : null,
+      providerIsVerified: json['provider_is_verified'] == 1 || json['provider_is_verified'] == true || json['provider_is_verified'] == '1',
       locationName: json['location_name']?.toString(),
     );
   }

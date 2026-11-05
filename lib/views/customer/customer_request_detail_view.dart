@@ -224,55 +224,171 @@ class _CustomerRequestDetailViewState extends State<CustomerRequestDetailView> {
                       ),
                       const SizedBox(height: 18),
 
-                      // Assigned Provider Card
+                      // Assigned Provider Card (Without phone number, communication via platform)
                       if (req.providerName != null) ...[
                         Container(
-                          padding: const EdgeInsets.all(18),
+                          padding: const EdgeInsets.all(20),
                           decoration: BoxDecoration(
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(22),
-                            border: Border.all(color: AppTheme.secondary.withValues(alpha: 0.3)),
+                            border: Border.all(color: AppTheme.secondary.withValues(alpha: 0.4)),
                             boxShadow: [
                               BoxShadow(
-                                color: AppTheme.secondary.withValues(alpha: 0.05),
-                                blurRadius: 14,
+                                color: AppTheme.secondary.withValues(alpha: 0.08),
+                                blurRadius: 16,
                                 offset: const Offset(0, 4),
                               ),
                             ],
                           ),
-                          child: Row(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Container(
-                                padding: const EdgeInsets.all(12),
-                                decoration: BoxDecoration(
-                                  color: AppTheme.secondary.withValues(alpha: 0.12),
-                                  shape: BoxShape.circle,
-                                ),
-                                child: const Icon(Icons.handyman_rounded, color: AppTheme.secondary, size: 24),
+                              Row(
+                                children: [
+                                  CircleAvatar(
+                                    radius: 28,
+                                    backgroundColor: AppTheme.secondary.withValues(alpha: 0.15),
+                                    child: Text(
+                                      req.providerName!.isNotEmpty ? req.providerName![0] : 'ف',
+                                      style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppTheme.secondary),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 14),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Row(
+                                          children: [
+                                            Expanded(
+                                              child: Text(
+                                                req.providerName!,
+                                                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ),
+                                            if (req.providerIsVerified) ...[
+                                              const SizedBox(width: 6),
+                                              const Icon(Icons.verified, color: AppTheme.primary, size: 18),
+                                            ],
+                                          ],
+                                        ),
+                                        const SizedBox(height: 2),
+                                        Text(
+                                          req.providerProfession ?? req.serviceNameAr ?? 'فني متخصص',
+                                          style: const TextStyle(fontSize: 13, color: AppTheme.secondary, fontWeight: FontWeight.w600),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
                               ),
-                              const SizedBox(width: 14),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
+                              const Divider(height: 24),
+                              Row(
+                                children: [
+                                  if (req.providerAvgRating != null) ...[
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                      decoration: BoxDecoration(
+                                        color: Colors.amber.shade50,
+                                        borderRadius: BorderRadius.circular(10),
+                                        border: Border.all(color: Colors.amber.shade200),
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          const Icon(Icons.star_rounded, size: 16, color: Colors.amber),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            '${req.providerAvgRating}',
+                                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Colors.amber.shade900),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                  ],
+                                  if (req.providerExperienceYears != null && req.providerExperienceYears! > 0) ...[
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                      decoration: BoxDecoration(
+                                        color: Colors.blue.shade50,
+                                        borderRadius: BorderRadius.circular(10),
+                                        border: Border.all(color: Colors.blue.shade200),
+                                      ),
+                                      child: Text(
+                                        'خبرة ${req.providerExperienceYears} سنوات',
+                                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Colors.blue.shade900),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                  ],
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                    decoration: BoxDecoration(
+                                      color: Colors.green.shade50,
+                                      borderRadius: BorderRadius.circular(10),
+                                      border: Border.all(color: Colors.green.shade200),
+                                    ),
+                                    child: const Text(
+                                      'معتمد رسمياً في المنصة',
+                                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: Colors.green),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 14),
+                              Container(
+                                width: double.infinity,
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFF8FAFC),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(color: AppTheme.border),
+                                ),
+                                child: const Row(
                                   children: [
-                                    const Text('مقدم الخدمة الفني المعتمد', style: TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
-                                    const SizedBox(height: 2),
-                                    Text(
-                                      req.providerName!,
-                                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
+                                    Icon(Icons.shield_outlined, size: 16, color: AppTheme.primary),
+                                    SizedBox(width: 8),
+                                    Expanded(
+                                      child: Text(
+                                        'حماية الخصوصية: التواصل ومتابعة تنفيذ الخدمة يتم حصراً عبر المنصة الرسمية دون كشف أرقام الهواتف.',
+                                        style: TextStyle(fontSize: 11.5, color: AppTheme.textSecondary, height: 1.3),
+                                      ),
                                     ),
                                   ],
                                 ),
                               ),
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                                decoration: BoxDecoration(
-                                  color: AppTheme.success.withValues(alpha: 0.12),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: const Text(
-                                  'فني معتمد',
-                                  style: TextStyle(color: AppTheme.success, fontSize: 11, fontWeight: FontWeight.bold),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 18),
+                      ] else ...[
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.blue.shade50,
+                            borderRadius: BorderRadius.circular(18),
+                            border: Border.all(color: Colors.blue.shade200),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(Icons.hourglass_top_rounded, color: Colors.blue.shade700, size: 28),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'الطلب قيد الإرسال للمهنيين المعتمدين',
+                                      style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue.shade900, fontSize: 13.5),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      'سيصلك إشعار فوري وتظهر هنا هوية وبيانات المهني المعتمد فور قبوله للطلب.',
+                                      style: TextStyle(color: Colors.blue.shade800, fontSize: 11.5),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ],
