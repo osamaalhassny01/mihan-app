@@ -15,6 +15,11 @@ class StorageService {
     await prefs.setString(_keyFcmToken, token);
   }
 
+  static Future<void> clearFcmToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_keyFcmToken);
+  }
+
   static Future<String?> getFcmToken() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString(_keyFcmToken);

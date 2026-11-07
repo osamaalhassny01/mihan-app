@@ -23,6 +23,11 @@ class CustomerController extends ChangeNotifier {
   bool _isSubmittingReview = false;
   String? _errorMessage;
   String? _successMessage;
+  int? _createdRequestId;
+  bool _isWorkflowAction = false;
+
+  int? get createdRequestId => _createdRequestId;
+  bool get isWorkflowAction => _isWorkflowAction;
 
   // Getters
   List<CategoryModel> get categories => _categories;
@@ -157,7 +162,9 @@ class CustomerController extends ChangeNotifier {
     double? budget,
     String? notes,
   }) async {
+    if (_isCreatingRequest) return false;
     _isCreatingRequest = true;
+    _createdRequestId = null;
     _errorMessage = null;
     notifyListeners();
 
@@ -178,6 +185,7 @@ class CustomerController extends ChangeNotifier {
 
     _isCreatingRequest = false;
     if (res.success) {
+      _createdRequestId = int.tryParse(res.data?['id']?.toString() ?? '');
       _successMessage = 'تم إرسال طلب الخدمة بنجاح!';
       await loadRequests();
       notifyListeners();
@@ -186,6 +194,34 @@ class CustomerController extends ChangeNotifier {
       _errorMessage = res.message;
       notifyListeners();
       return false;
+    }
+  }
+
+  Future<bool> decideQuote(int requestId, int quoteId, {required bool approve}) =>
+      _workflowAction(requestId, 'quote', {'quote_id': quoteId, 'decision': approve ? 'approve' : 'decline'});
+
+  Future<bool> confirmCompletion(int requestId) => _workflowAction(requestId, 'confirm-completion', {});
+
+  Future<bool> requestRework(int requestId, String notes) => _workflowAction(requestId, 'rework', {'notes': notes.trim()});
+
+  Future<bool> _workflowAction(int requestId, String action, Map<String, dynamic> payload) async {
+    if (_isWorkflowAction) return false;
+    _isWorkflowAction = true;
+    _errorMessage = null;
+    _successMessage = null;
+    notifyListeners();
+    try {
+      final res = await ApiService.post('/api/customer/requests/$requestId/$action', payload);
+      if (!res.success) {
+        _errorMessage = res.message;
+        return false;
+      }
+      await loadRequestDetails(requestId);
+      _successMessage = res.message;
+      return true;
+    } finally {
+      _isWorkflowAction = false;
+      notifyListeners();
     }
   }
 

@@ -185,14 +185,17 @@ class CustomButton extends StatelessWidget {
           Icon(icon, size: 20, color: textColor),
           const SizedBox(width: 8),
         ],
-        Text(
+        Flexible(child: Text(
           text,
+          textAlign: TextAlign.center,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
           style: TextStyle(
             color: textColor,
             fontSize: 15,
             fontWeight: FontWeight.bold,
           ),
-        ),
+        )),
       ],
     );
   }
@@ -209,6 +212,7 @@ class CustomTextField extends StatelessWidget {
   final int maxLines;
   final bool readOnly;
   final VoidCallback? onTap;
+  final FormFieldValidator<String>? validator;
 
   const CustomTextField({
     super.key,
@@ -222,6 +226,7 @@ class CustomTextField extends StatelessWidget {
     this.maxLines = 1,
     this.readOnly = false,
     this.onTap,
+    this.validator,
   });
 
   @override
@@ -238,7 +243,9 @@ class CustomTextField extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 6),
-        TextField(
+        TextFormField(
+          validator: validator,
+          autovalidateMode: AutovalidateMode.onUserInteraction,
           controller: controller,
           obscureText: obscureText,
           keyboardType: keyboardType,
@@ -270,6 +277,7 @@ class StatusBadge extends StatelessWidget {
   Color _getColor() {
     switch (status) {
       case 'new':
+      case 'awaiting_confirmation':
       case 'pending':
         return AppTheme.warning;
       case 'accepted':
@@ -512,6 +520,44 @@ class EmptyStateWidget extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// One clear next step for each request state.
+class RequestNextStepCard extends StatelessWidget {
+  final String status;
+  final bool isProvider;
+  const RequestNextStepCard({super.key, required this.status, this.isProvider = false});
+
+  @override
+  Widget build(BuildContext context) {
+    final message = switch (status) {
+      'new' || 'pending' => isProvider
+          ? 'راجع الخدمة والمنطقة والموعد، ثم اقبل الطلب إذا كان مناسبًا لك.'
+          : 'طلبك بانتظار قبول مقدم الخدمة. يمكنك متابعة حالته من هذه الصفحة.',
+      'accepted' => isProvider
+          ? 'تم قبول الطلب. عند بدء العمل اضغط «بدء التنفيذ».'
+          : 'قَبِل مقدم الخدمة طلبك. الخطوة التالية هي بدء تنفيذ الخدمة.',
+      'in_progress' => isProvider
+          ? 'بعد إنجاز العمل، أدخل السعر المتفق عليه لإصدار فاتورة العميل.'
+          : 'الخدمة قيد التنفيذ. بعد اكتمالها ستظهر الفاتورة هنا للسداد عبر المنصة.',
+      'completed' => isProvider
+          ? 'اكتمل العمل. تابع حالة سداد الفاتورة من صفحة المستحقات.'
+          : 'اكتملت الخدمة. راجع حالة الفاتورة أدناه، وسدد المبلغ المتبقي ثم قيّم تجربتك.',
+      'cancelled' => 'هذا الطلب ملغي. يمكنك إنشاء طلب جديد عند الحاجة.',
+      'rejected' => 'لم يُقبل الطلب. يمكنك تقديم طلب جديد أو اختيار مقدم خدمة آخر.',
+      _ => 'تابع تفاصيل الطلب وتحديثاته من هذه الصفحة.',
+    };
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(color: AppTheme.primary.withValues(alpha: 0.06), borderRadius: BorderRadius.circular(16)),
+      child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        const Icon(Icons.info_outline, color: AppTheme.primary),
+        const SizedBox(width: 10),
+        Expanded(child: Text(message, style: const TextStyle(height: 1.6))),
+      ]),
     );
   }
 }

@@ -115,6 +115,7 @@ class ProviderController extends ChangeNotifier {
   }
 
   Future<bool> acceptRequest(int requestId) async {
+    if (_isActionLoading) return false;
     _isActionLoading = true;
     _errorMessage = null;
     notifyListeners();
@@ -136,6 +137,7 @@ class ProviderController extends ChangeNotifier {
   }
 
   Future<bool> rejectRequest(int requestId) async {
+    if (_isActionLoading) return false;
     _isActionLoading = true;
     _errorMessage = null;
     notifyListeners();
@@ -156,6 +158,7 @@ class ProviderController extends ChangeNotifier {
   }
 
   Future<bool> startRequest(int requestId) async {
+    if (_isActionLoading) return false;
     _isActionLoading = true;
     _errorMessage = null;
     notifyListeners();
@@ -177,6 +180,7 @@ class ProviderController extends ChangeNotifier {
   }
 
   Future<bool> completeRequest(int requestId, double finalPrice) async {
+    if (_isActionLoading) return false;
     _isActionLoading = true;
     _errorMessage = null;
     notifyListeners();
@@ -197,6 +201,33 @@ class ProviderController extends ChangeNotifier {
       _errorMessage = res.message;
       notifyListeners();
       return false;
+    }
+  }
+
+  Future<bool> submitQuote(int id, double price, String details, {String? visitAt}) =>
+      _workflowAction(id, 'quote', {'total_price': price, 'details': details.trim(), 'visit_at': visitAt});
+
+  Future<bool> requestCompletion(int id, String notes) =>
+      _workflowAction(id, 'complete', {'completion_notes': notes.trim()});
+
+  Future<bool> _workflowAction(int id, String action, Map<String, dynamic> payload) async {
+    if (_isActionLoading) return false;
+    _isActionLoading = true;
+    _errorMessage = null;
+    _successMessage = null;
+    notifyListeners();
+    try {
+      final res = await ApiService.post('/api/provider/requests/$id/$action', payload);
+      if (!res.success) {
+        _errorMessage = res.message;
+        return false;
+      }
+      await loadRequestDetails(id);
+      _successMessage = res.message;
+      return true;
+    } finally {
+      _isActionLoading = false;
+      notifyListeners();
     }
   }
 

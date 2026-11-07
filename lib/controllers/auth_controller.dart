@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../models/user_model.dart';
 import '../models/request_and_provider_models.dart';
@@ -36,10 +37,13 @@ class AuthController extends ChangeNotifier {
           final userMap = res.data['user'] as Map<String, dynamic>;
           _currentUser = UserModel.fromJson(userMap);
           await StorageService.saveUser(_currentUser!);
+          unawaited(NotificationService.updateDeviceToken());
 
           if (res.data['provider_profile'] != null) {
             _providerProfile = ProviderProfileModel.fromJson(res.data['provider_profile']);
           }
+        } else if (res.statusCode == null || (res.statusCode ?? 0) >= 500) {
+          _currentUser = await StorageService.getUser();
         } else {
           // Token expired or invalid
           await StorageService.clearAuth();
@@ -81,10 +85,7 @@ class AuthController extends ChangeNotifier {
         role: _currentUser!.role,
       );
 
-      final fcmToken = await StorageService.getFcmToken();
-      if (fcmToken != null && fcmToken.isNotEmpty) {
-        NotificationService.syncTokenWithBackend(fcmToken);
-      }
+      unawaited(NotificationService.updateDeviceToken());
 
       if (res.data['provider_profile'] != null) {
         _providerProfile = ProviderProfileModel.fromJson(res.data['provider_profile']);
@@ -133,10 +134,7 @@ class AuthController extends ChangeNotifier {
         role: _currentUser!.role,
       );
 
-      final fcmToken = await StorageService.getFcmToken();
-      if (fcmToken != null && fcmToken.isNotEmpty) {
-        NotificationService.syncTokenWithBackend(fcmToken);
-      }
+      unawaited(NotificationService.updateDeviceToken());
 
       if (res.data['provider_profile'] != null) {
         _providerProfile = ProviderProfileModel.fromJson(res.data['provider_profile']);
@@ -154,6 +152,7 @@ class AuthController extends ChangeNotifier {
     _isLoading = true;
     notifyListeners();
 
+    await NotificationService.unregisterDevice();
     await StorageService.clearAuth();
     _currentUser = null;
     _providerProfile = null;

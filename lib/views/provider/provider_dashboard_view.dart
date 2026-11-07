@@ -1,3 +1,4 @@
+import '../notifications/notifications_view.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../config/app_theme.dart';
@@ -34,6 +35,7 @@ class _ProviderDashboardViewState extends State<ProviderDashboardView> {
       appBar: AppBar(
         title: const Text('لوحة تحكم مقدم الخدمة'),
         actions: [
+          const NotificationsButton(),
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: () => provider.loadDashboard(),

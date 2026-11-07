@@ -1,3 +1,4 @@
+import '../notifications/notifications_view.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../config/app_theme.dart';
@@ -57,6 +58,7 @@ class _AdminMainViewState extends State<AdminMainView> {
         title: const Text('تسجيل الخروج'),
         content: const Text('هل أنت متأكد من تسجيل الخروج من لوحة تحكم الإدارة؟'),
         actions: [
+          const NotificationsButton(),
           TextButton(onPressed: () => Navigator.of(ctx).pop(false), child: const Text('إلغاء')),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: AppTheme.error),

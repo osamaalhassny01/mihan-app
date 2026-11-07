@@ -18,7 +18,9 @@ class NotificationService {
   factory NotificationService() => _instance;
   NotificationService._internal();
 
-  static final FirebaseMessaging _messaging = FirebaseMessaging.instance;
+  static FirebaseMessaging get _messaging => FirebaseMessaging.instance;
+  static bool _initialized = false;
+  static final ValueNotifier<bool> openInboxRequested = ValueNotifier(false);
   static final FlutterLocalNotificationsPlugin _localNotifications = FlutterLocalNotificationsPlugin();
 
   static const AndroidNotificationChannel _channel = AndroidNotificationChannel(
@@ -32,6 +34,7 @@ class NotificationService {
 
   /// تهيئة Firebase والإشعارات المحلية
   static Future<void> initialize() async {
+    if (_initialized) return;
     try {
       await Firebase.initializeApp();
       debugPrint('Firebase Core Initialized Successfully.');
@@ -52,7 +55,7 @@ class NotificationService {
       await _localNotifications.initialize(
         initSettings,
         onDidReceiveNotificationResponse: (response) {
-          debugPrint('Local Notification Clicked: ${response.payload}');
+          openInboxRequested.value = true;
         },
       );
 
@@ -79,12 +82,9 @@ class NotificationService {
 
       debugPrint('FCM Authorization Status: ${settings.authorizationStatus}');
 
-      // جلب وحفظ توكن الجهاز
-      await updateDeviceToken();
-
       // الاستماع لتجديد التوكن
       _messaging.onTokenRefresh.listen((newToken) async {
-        debugPrint('FCM Token Refreshed: $newToken');
+        debugPrint('FCM token refreshed.');
         await StorageService.saveFcmToken(newToken);
         await syncTokenWithBackend(newToken);
       });
@@ -93,11 +93,11 @@ class NotificationService {
       FirebaseMessaging.onMessage.listen((RemoteMessage message) {
         debugPrint('FCM Foreground Message: ${message.notification?.title} - ${message.notification?.body}');
         final notif = message.notification;
-        if (notif != null) {
+        if (notif != null || message.data['title'] != null) {
           showNotification(
             id: message.hashCode,
-            title: notif.title ?? 'مِهَن',
-            body: notif.body ?? '',
+            title: notif?.title ?? message.data['title']?.toString() ?? 'مِهَن',
+            body: notif?.body ?? message.data['body']?.toString() ?? '',
             payload: message.data.toString(),
           );
         }
@@ -105,8 +105,17 @@ class NotificationService {
 
       // التفاعل مع النقر على الإشعار من الخلفية
       FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-        debugPrint('FCM Notification Clicked (Background): ${message.data}');
+        openInboxRequested.value = true;
       });
+
+      final initialMessage = await _messaging.getInitialMessage();
+      final localLaunch = await _localNotifications.getNotificationAppLaunchDetails();
+      if (initialMessage != null || (localLaunch?.didNotificationLaunchApp ?? false)) {
+        openInboxRequested.value = true;
+      }
+
+      _initialized = true;
+      unawaited(updateDeviceToken());
 
       // إرسال الإشعار الترحيبي عند أول تشغيل للتطبيق
       await checkAndSendWelcomeNotification();
@@ -184,7 +193,7 @@ class NotificationService {
     try {
       final token = await _messaging.getToken();
       if (token != null && token.isNotEmpty) {
-        debugPrint('FCM Device Token: $token');
+        debugPrint('FCM device token obtained.');
         await StorageService.saveFcmToken(token);
         await syncTokenWithBackend(token);
         return token;
@@ -196,16 +205,40 @@ class NotificationService {
   }
 
   /// إرسال توكن الإشعارات إلى السيرفر
-  static Future<void> syncTokenWithBackend(String fcmToken) async {
+  static Future<bool> syncTokenWithBackend(String fcmToken) async {
     try {
       final authToken = await StorageService.getToken();
-      if (authToken == null || authToken.isEmpty) return;
-      await ApiService.post('/api/profile/fcm-token', {
+      if (authToken == null || authToken.isEmpty) return false;
+      final response = await ApiService.post('/api/profile/fcm-token', {
         'fcm_token': fcmToken,
       });
-      debugPrint('FCM Token synced with backend.');
+      if (!response.success) {
+        debugPrint('FCM token sync failed: ${response.statusCode} ${response.message}');
+        return false;
+      }
+      debugPrint('FCM token synced with backend.');
+      return true;
     } catch (e) {
       debugPrint('Failed to sync FCM token with backend: $e');
+      return false;
     }
+  }
+
+  static Future<void> unregisterDevice() async {
+    final token = await StorageService.getFcmToken();
+    if (token != null && token.isNotEmpty) {
+      try {
+        await ApiService.post('/api/profile/fcm-token/remove', {'fcm_token': token})
+            .timeout(const Duration(seconds: 3));
+      } catch (e) {
+        debugPrint('Could not unregister notification device: $e');
+      }
+    }
+    try {
+      if (_initialized) await _messaging.deleteToken().timeout(const Duration(seconds: 3));
+    } catch (e) {
+      debugPrint('Could not delete FCM token: $e');
+    }
+    await StorageService.clearFcmToken();
   }
 }

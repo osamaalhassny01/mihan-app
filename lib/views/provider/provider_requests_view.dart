@@ -25,58 +25,13 @@ class _ProviderRequestsViewState extends State<ProviderRequestsView> {
     });
   }
 
-  void _showCompleteDialog(BuildContext context, int requestId, ProviderController ctrl) {
-    final priceController = TextEditingController();
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('إكمال الخدمة وإصدار الفاتورة'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text('يرجى تأكيد السعر النهائي المتفق عليه للخدمة لإصدار الفاتورة للعميل:'),
-            const SizedBox(height: 12),
-            TextField(
-              controller: priceController,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                labelText: 'المبلغ الإجمالي (ريال)',
-                hintText: 'مثال: 5000',
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('إلغاء'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              final price = double.tryParse(priceController.text.trim()) ?? 0.0;
-              if (price <= 0) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('يرجى إدخال مبلغ صحيح')),
-                );
-                return;
-              }
-              Navigator.of(ctx).pop();
-              await ctrl.completeRequest(requestId, price);
-            },
-            child: const Text('إكمال وإصدار الفاتورة'),
-          ),
-        ],
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<ProviderController>();
 
     final filteredRequests = provider.requests.where((r) {
       if (_filter == 'pending') return r.isPending;
-      if (_filter == 'active') return r.isAccepted || r.isInProgress;
+      if (_filter == 'active') return r.isAccepted || r.isInProgress || r.isAwaitingConfirmation;
       if (_filter == 'completed') return r.isCompleted;
       return true;
     }).toList();
@@ -241,7 +196,7 @@ class _ProviderRequestsViewState extends State<ProviderRequestsView> {
                                           Expanded(
                                             child: ElevatedButton(
                                               style: ElevatedButton.styleFrom(backgroundColor: AppTheme.secondary),
-                                              onPressed: () async {
+                                              onPressed: provider.isActionLoading ? null : () async {
                                                 final ok = await provider.acceptRequest(req.id);
                                                 if (ok && context.mounted) {
                                                   ScaffoldMessenger.of(context).showSnackBar(
@@ -256,7 +211,7 @@ class _ProviderRequestsViewState extends State<ProviderRequestsView> {
                                           Expanded(
                                             child: OutlinedButton(
                                               style: OutlinedButton.styleFrom(foregroundColor: AppTheme.error),
-                                              onPressed: () async {
+                                              onPressed: provider.isActionLoading ? null : () async {
                                                 final ok = await provider.rejectRequest(req.id);
                                                 if (ok && context.mounted) {
                                                   ScaffoldMessenger.of(context).showSnackBar(
@@ -269,18 +224,11 @@ class _ProviderRequestsViewState extends State<ProviderRequestsView> {
                                           ),
                                         ],
                                       ),
-                                    ] else if (req.isAccepted) ...[
+                                    ] else if (req.isAccepted || req.isInProgress || req.isAwaitingConfirmation) ...[
                                       CustomButton(
-                                        text: 'بدء التنفيذ والتوجه للموقع',
-                                        icon: Icons.play_arrow,
-                                        onPressed: () => provider.startRequest(req.id),
-                                      ),
-                                    ] else if (req.isInProgress) ...[
-                                      CustomButton(
-                                        text: 'إكمال العمل وإصدار الفاتورة',
-                                        icon: Icons.check_circle_outline,
-                                        backgroundColor: AppTheme.success,
-                                        onPressed: () => _showCompleteDialog(context, req.id, provider),
+                                        text: req.isAwaitingConfirmation ? 'متابعة الاستلام' : req.isAccepted ? 'متابعة الاتفاق والتنفيذ' : 'متابعة العمل والتسليم',
+                                        icon: Icons.arrow_back_rounded,
+                                        onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => ProviderRequestDetailView(requestId: req.id))),
                                       ),
                                     ],
                                   ],

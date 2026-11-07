@@ -1,3 +1,4 @@
+import '../notifications/notifications_view.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../config/app_theme.dart';
@@ -59,6 +60,7 @@ class _EmployeeMainViewState extends State<EmployeeMainView> {
         title: const Text('تسجيل الخروج'),
         content: const Text('هل أنت متأكد من رغبتك في تسجيل الخروج من حساب الموظف؟'),
         actions: [
+          const NotificationsButton(),
           TextButton(onPressed: () => Navigator.of(ctx).pop(false), child: const Text('إلغاء')),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: AppTheme.error),
@@ -667,6 +669,8 @@ class _EmployeeMainViewState extends State<EmployeeMainView> {
         return 'تم القبول';
       case 'in_progress':
         return 'قيد التنفيذ';
+      case 'awaiting_confirmation':
+        return 'بانتظار الاستلام';
       case 'completed':
         return 'مكتمل';
       case 'cancelled':

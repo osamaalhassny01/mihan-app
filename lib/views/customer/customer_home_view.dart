@@ -1,3 +1,4 @@
+import '../notifications/notifications_view.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../config/app_theme.dart';
@@ -120,6 +121,7 @@ class _CustomerHomeViewState extends State<CustomerHomeView> {
           ],
         ),
         actions: [
+          const NotificationsButton(),
           IconButton(
             tooltip: 'تحديث البيانات',
             icon: const Icon(Icons.refresh_rounded),

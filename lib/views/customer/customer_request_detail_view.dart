@@ -4,6 +4,7 @@ import '../../config/app_theme.dart';
 import '../../config/currency_helper.dart';
 import '../../controllers/customer_controller.dart';
 import '../widgets/presentation_widgets.dart';
+import '../widgets/request_workflow_widgets.dart';
 
 class CustomerRequestDetailView extends StatefulWidget {
   final int requestId;
@@ -112,6 +113,13 @@ class _CustomerRequestDetailViewState extends State<CustomerRequestDetailView> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
+                      RequestJourneyCard(request: req, isPaid: inv?.isPaid ?? false),
+                      ServiceWorkflowPanel(request: req),
+                      RequestActivityTimeline(history: customer.requestHistory, request: req),
+                      if (customer.errorMessage != null) ...[
+                        Text(customer.errorMessage!, style: const TextStyle(color: AppTheme.error)),
+                        const SizedBox(height: 12),
+                      ],
                       if (customer.successMessage != null) ...[
                         Container(
                           padding: const EdgeInsets.all(12),
@@ -145,10 +153,14 @@ class _CustomerRequestDetailViewState extends State<CustomerRequestDetailView> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            Wrap(
+                              alignment: WrapAlignment.spaceBetween,
+                              crossAxisAlignment: WrapCrossAlignment.center,
+                              spacing: 12,
+                              runSpacing: 10,
                               children: [
                                 Row(
+                                  mainAxisSize: MainAxisSize.min,
                                   children: [
                                     Container(
                                       padding: const EdgeInsets.all(8),
@@ -159,14 +171,16 @@ class _CustomerRequestDetailViewState extends State<CustomerRequestDetailView> {
                                       child: const Icon(Icons.receipt_long_rounded, color: AppTheme.primary, size: 22),
                                     ),
                                     const SizedBox(width: 10),
-                                    Text(
+                                    Flexible(child: Text(
                                       req.requestNumber,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
                                       style: const TextStyle(
                                         fontSize: 16,
                                         fontWeight: FontWeight.bold,
                                         color: AppTheme.primary,
                                       ),
-                                    ),
+                                    )),
                                   ],
                                 ),
                                 StatusBadge(status: req.status, label: req.statusArabic),
@@ -208,10 +222,10 @@ class _CustomerRequestDetailViewState extends State<CustomerRequestDetailView> {
                               children: [
                                 Icon(Icons.description_outlined, size: 18, color: AppTheme.secondary),
                                 SizedBox(width: 8),
-                                Text(
+                                Expanded(child: Text(
                                   'تفاصيل المشكلة / العطل',
                                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppTheme.textPrimary),
-                                ),
+                                )),
                               ],
                             ),
                             const SizedBox(height: 12),
@@ -284,7 +298,9 @@ class _CustomerRequestDetailViewState extends State<CustomerRequestDetailView> {
                                 ],
                               ),
                               const Divider(height: 24),
-                              Row(
+                              Wrap(
+                                spacing: 8,
+                                runSpacing: 8,
                                 children: [
                                   if (req.providerAvgRating != null) ...[
                                     Container(
@@ -323,7 +339,7 @@ class _CustomerRequestDetailViewState extends State<CustomerRequestDetailView> {
                                     ),
                                     const SizedBox(width: 8),
                                   ],
-                                  Container(
+                                  if (req.providerIsVerified) Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                                     decoration: BoxDecoration(
                                       color: Colors.green.shade50,
@@ -363,7 +379,7 @@ class _CustomerRequestDetailViewState extends State<CustomerRequestDetailView> {
                           ),
                         ),
                         const SizedBox(height: 18),
-                      ] else ...[
+                      ] else if (req.isPending) ...[
                         Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
@@ -419,20 +435,23 @@ class _CustomerRequestDetailViewState extends State<CustomerRequestDetailView> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              Wrap(
+                                alignment: WrapAlignment.spaceBetween,
+                                spacing: 12,
+                                runSpacing: 10,
                                 children: [
                                   Row(
+                                    mainAxisSize: MainAxisSize.min,
                                     children: [
                                       Icon(
                                         Icons.receipt_rounded,
                                         color: inv.isPaid ? AppTheme.success : AppTheme.warning,
                                       ),
                                       const SizedBox(width: 8),
-                                      Text(
+                                      Flexible(child: Text(
                                         'فاتورة رقم ${inv.invoiceNumber}',
                                         style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-                                      ),
+                                      )),
                                     ],
                                   ),
                                   StatusBadge(
@@ -507,13 +526,23 @@ class _CustomerRequestDetailViewState extends State<CustomerRequestDetailView> {
                       ],
 
                       // Cancel Request Button (if pending)
-                      if (req.isPending) ...[
+                      if (req.canCancel) ...[
                         CustomButton(
                           text: 'إلغاء الطلب',
                           icon: Icons.cancel_outlined,
                           backgroundColor: AppTheme.error,
                           isLoading: customer.isLoading,
-                          onPressed: () => customer.cancelRequest(req.id),
+                          onPressed: () async {
+                            final confirmed = await showDialog<bool>(context: context, builder: (ctx) => AlertDialog(
+                              title: const Text('إلغاء الطلب؟'),
+                              content: const Text('سيُلغى الطلب قبل بدء التنفيذ. يمكنك إنشاء طلب جديد لاحقًا.'),
+                              actions: [
+                                TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('الاحتفاظ بالطلب')),
+                                TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('نعم، إلغاء الطلب')),
+                              ],
+                            ));
+                            if (confirmed == true && context.mounted) await customer.cancelRequest(req.id);
+                          },
                         ),
                       ],
                     ],
@@ -528,8 +557,8 @@ class _CustomerRequestDetailViewState extends State<CustomerRequestDetailView> {
         Icon(icon, size: 18, color: iconColor),
         const SizedBox(width: 8),
         Text(label, style: const TextStyle(color: AppTheme.textSecondary, fontSize: 13)),
-        const Spacer(),
-        Text(value, style: const TextStyle(fontWeight: FontWeight.bold, color: AppTheme.textPrimary, fontSize: 13)),
+        const SizedBox(width: 8),
+        Expanded(child: Text(value, textAlign: TextAlign.end, style: const TextStyle(fontWeight: FontWeight.bold, color: AppTheme.textPrimary, fontSize: 13))),
       ],
     );
   }

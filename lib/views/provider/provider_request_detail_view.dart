@@ -4,6 +4,7 @@ import '../../config/app_theme.dart';
 import '../../config/currency_helper.dart';
 import '../../controllers/provider_controller.dart';
 import '../widgets/presentation_widgets.dart';
+import '../widgets/request_workflow_widgets.dart';
 
 class ProviderRequestDetailView extends StatefulWidget {
   final int requestId;
@@ -51,8 +52,8 @@ class _ProviderRequestDetailViewState extends State<ProviderRequestDetailView> {
           ),
           ElevatedButton(
             onPressed: () async {
-              final price = double.tryParse(priceController.text.trim()) ?? 0.0;
-              if (price <= 0) {
+              final price = double.tryParse(CurrencyHelper.toLatinDigits(priceController.text.trim()).replaceAll('٫', '.')) ?? 0.0;
+              if (!price.isFinite || price <= 0) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(content: Text('يرجى إدخال مبلغ صحيح')),
                 );
@@ -90,6 +91,13 @@ class _ProviderRequestDetailViewState extends State<ProviderRequestDetailView> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
+                      RequestJourneyCard(request: req, isProvider: true, isPaid: provider.selectedInvoice?.isPaid ?? false),
+                      ServiceWorkflowPanel(request: req, isProvider: true),
+                      RequestActivityTimeline(history: provider.requestHistory, request: req),
+                      if (provider.errorMessage != null) ...[
+                        Text(provider.errorMessage!, style: const TextStyle(color: AppTheme.error)),
+                        const SizedBox(height: 12),
+                      ],
                       if (provider.successMessage != null) ...[
                         Container(
                           padding: const EdgeInsets.all(12),
@@ -116,8 +124,11 @@ class _ProviderRequestDetailViewState extends State<ProviderRequestDetailView> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            Wrap(
+                              alignment: WrapAlignment.spaceBetween,
+                              spacing: 12,
+                              runSpacing: 10,
+                              crossAxisAlignment: WrapCrossAlignment.center,
                               children: [
                                 Text(
                                   req.requestNumber,
@@ -170,8 +181,8 @@ class _ProviderRequestDetailViewState extends State<ProviderRequestDetailView> {
                               child: ElevatedButton.icon(
                                 style: ElevatedButton.styleFrom(backgroundColor: AppTheme.secondary),
                                 icon: const Icon(Icons.check, color: Colors.white),
-                                label: const Text('قبول الطلب'),
-                                onPressed: () async {
+                                label: const Text('حجز الطلب'),
+                                onPressed: provider.isActionLoading ? null : () async {
                                   final ok = await provider.acceptRequest(req.id);
                                   if (ok && context.mounted) {
                                     ScaffoldMessenger.of(context).showSnackBar(
@@ -186,8 +197,8 @@ class _ProviderRequestDetailViewState extends State<ProviderRequestDetailView> {
                               child: OutlinedButton.icon(
                                 style: OutlinedButton.styleFrom(foregroundColor: AppTheme.error),
                                 icon: const Icon(Icons.close, color: AppTheme.error),
-                                label: const Text('رفض الطلب'),
-                                onPressed: () async {
+                                label: const Text('اعتذار عن الطلب'),
+                                onPressed: provider.isActionLoading ? null : () async {
                                   final ok = await provider.rejectRequest(req.id);
                                   if (ok && context.mounted) {
                                     ScaffoldMessenger.of(context).showSnackBar(
@@ -200,14 +211,14 @@ class _ProviderRequestDetailViewState extends State<ProviderRequestDetailView> {
                             ),
                           ],
                         ),
-                      ] else if (req.isAccepted) ...[
+                      ] else if (req.canStart) ...[
                         CustomButton(
                           text: 'بدء التنفيذ والتوجه للموقع',
                           icon: Icons.play_arrow,
                           isLoading: provider.isActionLoading,
                           onPressed: () => provider.startRequest(req.id),
                         ),
-                      ] else if (req.isInProgress) ...[
+                      ] else if (req.isInProgress && !req.usesAgreement) ...[
                         CustomButton(
                           text: 'إكمال العمل وإصدار الفاتورة للعميل',
                           icon: Icons.check_circle_outline,
@@ -242,7 +253,7 @@ class _ProviderRequestDetailViewState extends State<ProviderRequestDetailView> {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(label, style: const TextStyle(color: AppTheme.textSecondary, fontSize: 13)),
-        Text(value, style: const TextStyle(fontWeight: FontWeight.w600, color: AppTheme.textPrimary, fontSize: 13)),
+        Expanded(child: Text(value, textAlign: TextAlign.end, style: const TextStyle(fontWeight: FontWeight.w600, color: AppTheme.textPrimary, fontSize: 13))),
       ],
     );
   }
