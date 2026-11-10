@@ -5,6 +5,7 @@ import '../../config/app_theme.dart';
 import '../../controllers/auth_controller.dart';
 import '../../services/api_service.dart';
 import '../widgets/presentation_widgets.dart';
+import '../widgets/management_request_actions.dart';
 import '../auth/login_view.dart';
 
 class EmployeeMainView extends StatefulWidget {
@@ -19,6 +20,8 @@ class _EmployeeMainViewState extends State<EmployeeMainView> {
   bool _isLoading = true;
   Map<String, dynamic>? _stats;
   List<dynamic> _recentRequests = [];
+  List<dynamic> _allRequests = [];
+  String _requestStatusFilter = 'all';
   List<dynamic> _complaints = [];
   String? _errorMessage;
 
@@ -36,6 +39,7 @@ class _EmployeeMainViewState extends State<EmployeeMainView> {
 
     final dashRes = await ApiService.get('/api/employee/dashboard');
     final compRes = await ApiService.get('/api/employee/complaints');
+    final reqRes = await ApiService.get('/api/employee/requests');
 
     if (!mounted) return;
     setState(() {
@@ -49,6 +53,10 @@ class _EmployeeMainViewState extends State<EmployeeMainView> {
 
       if (compRes.success && compRes.data is List) {
         _complaints = compRes.data as List;
+      }
+
+      if (reqRes.success && reqRes.data is List) {
+        _allRequests = reqRes.data as List;
       }
     });
   }
@@ -379,68 +387,86 @@ class _EmployeeMainViewState extends State<EmployeeMainView> {
   }
 
   Widget _buildRequestsTab() {
+    final list = _allRequests.isNotEmpty ? _allRequests : _recentRequests;
+    final filtered = list.where((r) {
+      if (_requestStatusFilter == 'all') return true;
+      final st = (r['status'] ?? '').toString();
+      if (_requestStatusFilter == 'pending') {
+        return st == 'pending' || st == 'new';
+      }
+      return st == _requestStatusFilter;
+    }).toList();
+
     return RefreshIndicator(
       onRefresh: _loadEmployeeData,
-      child: _recentRequests.isEmpty
-          ? const EmptyStateWidget(
-              icon: Icons.assignment_outlined,
-              title: 'لا توجد طلبات',
-              message: 'لم يتم العثور على طلبات لعرضها.',
-            )
-          : ListView.separated(
-              padding: const EdgeInsets.all(16),
-              itemCount: _recentRequests.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 12),
-              itemBuilder: (context, i) {
-                final req = _recentRequests[i];
-                return Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: AppTheme.border),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            req['request_number'] ?? 'REQ',
-                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: AppTheme.primary),
-                          ),
-                          StatusBadge(
-                            status: req['status'] ?? 'pending',
-                            label: _getStatusArabic(req['status'] ?? 'pending'),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        req['service_name'] ?? 'خدمة فنية',
-                        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        req['description'] ?? '',
-                        style: const TextStyle(fontSize: 13, color: AppTheme.textSecondary),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const Divider(height: 18),
-                      Row(
-                        children: [
-                          Text('العميل: ${req['customer_name'] ?? "-"}', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
-                          const Spacer(),
-                          Text('المزود: ${req['provider_name'] ?? "في الانتظار"}', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF6366F1))),
-                        ],
-                      ),
-                    ],
-                  ),
-                );
-              },
+      child: Column(
+        children: [
+          // Filter scroll bar
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            color: Colors.white,
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  _buildFilterChip('الكل (${list.length})', 'all'),
+                  const SizedBox(width: 8),
+                  _buildFilterChip('بانتظار التوجيه', 'pending'),
+                  const SizedBox(width: 8),
+                  _buildFilterChip('مقبول وموجه', 'accepted'),
+                  const SizedBox(width: 8),
+                  _buildFilterChip('قيد التنفيذ', 'in_progress'),
+                  const SizedBox(width: 8),
+                  _buildFilterChip('مكتمل', 'completed'),
+                  const SizedBox(width: 8),
+                  _buildFilterChip('ملغي', 'cancelled'),
+                ],
+              ),
             ),
+          ),
+          const Divider(height: 1),
+
+          Expanded(
+            child: filtered.isEmpty
+                ? const EmptyStateWidget(
+                    icon: Icons.assignment_outlined,
+                    title: 'لا توجد طلبات',
+                    message: 'لم يتم العثور على طلبات لعرضها في هذه الفئة.',
+                  )
+                : ListView.separated(
+                    padding: const EdgeInsets.all(16),
+                    itemCount: filtered.length,
+                    separatorBuilder: (_, __) => const SizedBox(height: 12),
+                    itemBuilder: (context, i) {
+                      final req = filtered[i] as Map<String, dynamic>;
+                      return ManagementRequestCard(
+                        request: req,
+                        isAdmin: false,
+                        onRefresh: _loadEmployeeData,
+                      );
+                    },
+                  ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFilterChip(String label, String value) {
+    final isSelected = _requestStatusFilter == value;
+    return ChoiceChip(
+      label: Text(label),
+      selected: isSelected,
+      onSelected: (_) => setState(() => _requestStatusFilter = value),
+      selectedColor: const Color(0xFF6366F1),
+      labelStyle: TextStyle(
+        color: isSelected ? Colors.white : AppTheme.textPrimary,
+        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+        fontSize: 12,
+      ),
+      backgroundColor: AppTheme.background,
+      side: BorderSide(color: isSelected ? const Color(0xFF6366F1) : AppTheme.border),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
     );
   }
 

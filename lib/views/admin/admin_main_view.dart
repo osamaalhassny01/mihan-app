@@ -5,6 +5,7 @@ import '../../config/app_theme.dart';
 import '../../controllers/auth_controller.dart';
 import '../../services/api_service.dart';
 import '../widgets/presentation_widgets.dart';
+import '../widgets/management_request_actions.dart';
 import '../auth/login_view.dart';
 
 class AdminMainView extends StatefulWidget {
@@ -19,6 +20,8 @@ class _AdminMainViewState extends State<AdminMainView> {
   bool _isLoading = true;
   Map<String, dynamic>? _dashboardData;
   List<dynamic> _usersList = [];
+  List<dynamic> _requests = [];
+  String _requestStatusFilter = 'all';
   String? _errorMessage;
 
   @override
@@ -35,6 +38,7 @@ class _AdminMainViewState extends State<AdminMainView> {
 
     final dashRes = await ApiService.get('/api/admin/dashboard');
     final usersRes = await ApiService.get('/api/admin/users');
+    final reqRes = await ApiService.get('/api/admin/requests');
 
     if (!mounted) return;
     setState(() {
@@ -47,6 +51,10 @@ class _AdminMainViewState extends State<AdminMainView> {
 
       if (usersRes.success && usersRes.data is List) {
         _usersList = usersRes.data as List;
+      }
+
+      if (reqRes.success && reqRes.data is List) {
+        _requests = reqRes.data as List;
       }
     });
   }
@@ -129,6 +137,11 @@ class _AdminMainViewState extends State<AdminMainView> {
               label: 'لوحة القيادة',
             ),
             BottomNavigationBarItem(
+              icon: Icon(Icons.assignment_outlined),
+              activeIcon: Icon(Icons.assignment_rounded),
+              label: 'الطلبات',
+            ),
+            BottomNavigationBarItem(
               icon: Icon(Icons.people_outline),
               activeIcon: Icon(Icons.people_rounded),
               label: 'المستخدمون',
@@ -176,9 +189,93 @@ class _AdminMainViewState extends State<AdminMainView> {
       index: _currentIndex,
       children: [
         _buildDashboardTab(user),
+        _buildRequestsTab(),
         _buildUsersTab(),
         _buildProfileTab(user),
       ],
+    );
+  }
+
+  Widget _buildRequestsTab() {
+    final filtered = _requests.where((r) {
+      if (_requestStatusFilter == 'all') return true;
+      final st = (r['status'] ?? '').toString();
+      if (_requestStatusFilter == 'pending') {
+        return st == 'pending' || st == 'new';
+      }
+      return st == _requestStatusFilter;
+    }).toList();
+
+    return RefreshIndicator(
+      onRefresh: _loadAdminData,
+      child: Column(
+        children: [
+          // Filter scroll bar
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            color: Colors.white,
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  _buildFilterChip('الكل (${_requests.length})', 'all'),
+                  const SizedBox(width: 8),
+                  _buildFilterChip('بانتظار التوجيه', 'pending'),
+                  const SizedBox(width: 8),
+                  _buildFilterChip('مقبول وموجه', 'accepted'),
+                  const SizedBox(width: 8),
+                  _buildFilterChip('قيد التنفيذ', 'in_progress'),
+                  const SizedBox(width: 8),
+                  _buildFilterChip('مكتمل', 'completed'),
+                  const SizedBox(width: 8),
+                  _buildFilterChip('ملغي', 'cancelled'),
+                ],
+              ),
+            ),
+          ),
+          const Divider(height: 1),
+
+          Expanded(
+            child: filtered.isEmpty
+                ? const EmptyStateWidget(
+                    icon: Icons.assignment_outlined,
+                    title: 'لا توجد طلبات بهذه الحالة',
+                    message: 'يمكنك اختيار فلتر آخر أو انتظار استقبال طلبات جديدة من العملاء.',
+                  )
+                : ListView.separated(
+                    padding: const EdgeInsets.all(16),
+                    itemCount: filtered.length,
+                    separatorBuilder: (_, __) => const SizedBox(height: 12),
+                    itemBuilder: (ctx, i) {
+                      final req = filtered[i] as Map<String, dynamic>;
+                      return ManagementRequestCard(
+                        request: req,
+                        isAdmin: true,
+                        onRefresh: _loadAdminData,
+                      );
+                    },
+                  ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFilterChip(String label, String value) {
+    final isSelected = _requestStatusFilter == value;
+    return ChoiceChip(
+      label: Text(label),
+      selected: isSelected,
+      onSelected: (_) => setState(() => _requestStatusFilter = value),
+      selectedColor: AppTheme.primary,
+      labelStyle: TextStyle(
+        color: isSelected ? Colors.white : AppTheme.textPrimary,
+        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+        fontSize: 12,
+      ),
+      backgroundColor: AppTheme.background,
+      side: BorderSide(color: isSelected ? AppTheme.primary : AppTheme.border),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
     );
   }
 
