@@ -21,6 +21,7 @@ class _AdminMainViewState extends State<AdminMainView> {
   Map<String, dynamic>? _dashboardData;
   List<dynamic> _usersList = [];
   List<dynamic> _requests = [];
+  List<dynamic> _pendingApplications = [];
   String _requestStatusFilter = 'all';
   String? _errorMessage;
 
@@ -39,6 +40,7 @@ class _AdminMainViewState extends State<AdminMainView> {
     final dashRes = await ApiService.get('/api/admin/dashboard');
     final usersRes = await ApiService.get('/api/admin/users');
     final reqRes = await ApiService.get('/api/admin/requests');
+    final appsRes = await ApiService.get('/api/admin/provider-applications?status=pending');
 
     if (!mounted) return;
     setState(() {
@@ -58,7 +60,140 @@ class _AdminMainViewState extends State<AdminMainView> {
       } else if (dashRes.success && dashRes.data is Map && dashRes.data['recent_requests'] is List) {
         _requests = dashRes.data['recent_requests'] as List;
       }
+
+      if (appsRes.success && appsRes.data is List) {
+        _pendingApplications = appsRes.data as List;
+      } else if (dashRes.success && dashRes.data is Map && dashRes.data['recent_applications'] is List) {
+        _pendingApplications = dashRes.data['recent_applications'] as List;
+      }
     });
+  }
+
+  Future<void> _approveApplication(Map<String, dynamic> app) async {
+    final appId = app['id'];
+    final name = app['user_name'] ?? 'المهني';
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: AppTheme.success.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Icon(Icons.verified_user_rounded, color: AppTheme.success, size: 24),
+            ),
+            const SizedBox(width: 10),
+            const Text('قبول واعتماد المهني', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+          ],
+        ),
+        content: Text(
+          'هل تريد بالتأكيد قبول طلب المهني $name واعتماده كمقدم خدمة رسمي في المنصة وتفعيل حسابه؟',
+          style: const TextStyle(fontSize: 13, height: 1.5),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('إلغاء')),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: AppTheme.success, foregroundColor: Colors.white),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('نعم، قبول وتفعيل'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm != true || !mounted) return;
+
+    final res = await ApiService.post('/api/admin/provider-applications/$appId/approve', {});
+    if (!mounted) return;
+    if (res.success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('تم اعتماد وتفعيل حساب المهني $name بنجاح وإرسال إشعار له.'),
+          backgroundColor: AppTheme.success,
+        ),
+      );
+      _loadAdminData();
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(res.message), backgroundColor: AppTheme.error),
+      );
+    }
+  }
+
+  Future<void> _rejectApplication(Map<String, dynamic> app) async {
+    final appId = app['id'];
+    final name = app['user_name'] ?? 'المهني';
+    final reasonController = TextEditingController();
+
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: AppTheme.error.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Icon(Icons.cancel_outlined, color: AppTheme.error, size: 24),
+            ),
+            const SizedBox(width: 10),
+            const Text('رفض طلب الانضمام', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('هل تريد رفض طلب المهني $name؟ يمكنك كتابة ملاحظة أو سبب الرفض أدناه:', style: const TextStyle(fontSize: 13)),
+            const SizedBox(height: 12),
+            TextField(
+              controller: reasonController,
+              maxLines: 2,
+              decoration: InputDecoration(
+                hintText: 'سبب الرفض (اختياري)...',
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                contentPadding: const EdgeInsets.all(12),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('تراجع')),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: AppTheme.error, foregroundColor: Colors.white),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('تأكيد الرفض'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm != true || !mounted) return;
+
+    final res = await ApiService.post('/api/admin/provider-applications/$appId/reject', {
+      'admin_notes': reasonController.text.trim(),
+    });
+    if (!mounted) return;
+    if (res.success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('تم رفض طلب $name وإرسال إشعار له.'),
+          backgroundColor: AppTheme.warning,
+        ),
+      );
+      _loadAdminData();
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(res.message), backgroundColor: AppTheme.error),
+      );
+    }
   }
 
   void _onLogout(BuildContext context) async {
@@ -113,6 +248,7 @@ class _AdminMainViewState extends State<AdminMainView> {
           ],
         ),
         actions: [
+          const NotificationsButton(),
           IconButton(
             tooltip: 'تحديث البيانات',
             icon: const Icon(Icons.refresh_rounded),
@@ -425,6 +561,198 @@ class _AdminMainViewState extends State<AdminMainView> {
                 ),
               ],
             ),
+            const SizedBox(height: 24),
+
+            // Pending Provider Applications Section
+            SectionHeader(
+              title: 'طلبات انضمام المهنيين (${_pendingApplications.length})',
+              actionText: _pendingApplications.isNotEmpty ? 'بانتظار الاعتماد' : null,
+              onAction: null,
+            ),
+            const SizedBox(height: 12),
+            if (_pendingApplications.isEmpty)
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: AppTheme.border),
+                ),
+                child: const Row(
+                  children: [
+                    Icon(Icons.how_to_reg_rounded, color: AppTheme.success, size: 24),
+                    SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        'لا توجد طلبات انضمام مهنيين جديدة معلقة حالياً.',
+                        style: TextStyle(fontSize: 13, color: AppTheme.textSecondary),
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            else
+              ListView.separated(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: _pendingApplications.length,
+                separatorBuilder: (_, __) => const SizedBox(height: 12),
+                itemBuilder: (context, i) {
+                  final app = _pendingApplications[i] as Map<String, dynamic>;
+                  final name = app['user_name'] ?? 'مهني جديد';
+                  final profession = app['profession'] ?? 'فني مهني';
+                  final years = app['years_exp'] ?? 0;
+                  final city = app['city'] ?? 'غير محدد';
+                  final phone = app['user_phone'] ?? '';
+                  final certUrl = app['certificate_url']?.toString();
+
+                  return Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: const Color(0xFFFDE68A), width: 1.5),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFFF59E0B).withValues(alpha: 0.08),
+                          blurRadius: 14,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Container(
+                              width: 46,
+                              height: 46,
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFFFFBEB),
+                                borderRadius: BorderRadius.circular(14),
+                                border: Border.all(color: const Color(0xFFFDE68A)),
+                              ),
+                              child: const Icon(Icons.handyman_rounded, color: Color(0xFFD97706), size: 24),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Text(
+                                        name,
+                                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: AppTheme.textPrimary),
+                                      ),
+                                      const Spacer(),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFFFFFBEB),
+                                          borderRadius: BorderRadius.circular(8),
+                                          border: Border.all(color: const Color(0xFFFDE68A)),
+                                        ),
+                                        child: const Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Icon(Icons.hourglass_top_rounded, size: 12, color: Color(0xFFD97706)),
+                                            SizedBox(width: 4),
+                                            Text(
+                                              'طلب انضمام جديد',
+                                              style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold, color: Color(0xFFD97706)),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 3),
+                                  Text(
+                                    '$profession • خبرة $years سنوات • $city',
+                                    style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                        if (phone.isNotEmpty) ...[
+                          const SizedBox(height: 10),
+                          Row(
+                            children: [
+                              const Icon(Icons.phone_rounded, size: 14, color: AppTheme.textSecondary),
+                              const SizedBox(width: 6),
+                              Text(phone, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppTheme.textPrimary)),
+                              if (certUrl != null && certUrl.isNotEmpty) ...[
+                                const Spacer(),
+                                InkWell(
+                                  onTap: () {
+                                    showDialog(
+                                      context: context,
+                                      builder: (ctx) => AlertDialog(
+                                        title: const Text('شهادة / وثيقة المهني'),
+                                        content: certUrl.startsWith('http')
+                                            ? Image.network(certUrl, fit: BoxFit.contain, errorBuilder: (_, __, ___) => const Text('تعذر تحميل الصورة'))
+                                            : Text(certUrl),
+                                        actions: [TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('إغلاق'))],
+                                      ),
+                                    );
+                                  },
+                                  child: const Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(Icons.image_outlined, size: 15, color: AppTheme.primary),
+                                      SizedBox(width: 4),
+                                      Text('معاينة الوثيقة', style: TextStyle(fontSize: 11.5, color: AppTheme.primary, fontWeight: FontWeight.bold)),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ],
+                        const SizedBox(height: 14),
+                        Row(
+                          children: [
+                            Expanded(
+                              flex: 3,
+                              child: ElevatedButton.icon(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: AppTheme.success,
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(vertical: 10),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                  elevation: 0,
+                                ),
+                                onPressed: () => _approveApplication(app),
+                                icon: const Icon(Icons.check_circle_rounded, size: 18),
+                                label: const Text('قبول واعتماد المهني', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              flex: 2,
+                              child: OutlinedButton.icon(
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor: AppTheme.error,
+                                  side: const BorderSide(color: AppTheme.error),
+                                  padding: const EdgeInsets.symmetric(vertical: 10),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                ),
+                                onPressed: () => _rejectApplication(app),
+                                icon: const Icon(Icons.close_rounded, size: 18),
+                                label: const Text('رفض', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
             const SizedBox(height: 24),
 
             // Recent Requests Direct Stream on Dashboard
