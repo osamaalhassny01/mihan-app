@@ -7,6 +7,7 @@ import '../services/api_service.dart';
 class CustomerController extends ChangeNotifier {
   List<CategoryModel> _categories = [];
   List<ServiceModel> _services = [];
+  List<ServiceModel> _allServices = [];
   List<LocationModel> _locations = [];
   List<ProviderProfileModel> _availableProviders = [];
   List<ServiceRequestModel> _requests = [];
@@ -32,6 +33,7 @@ class CustomerController extends ChangeNotifier {
   // Getters
   List<CategoryModel> get categories => _categories;
   List<ServiceModel> get services => _services;
+  List<ServiceModel> get allServices => _allServices.isNotEmpty ? _allServices : _services;
   List<LocationModel> get locations => _locations;
   List<ProviderProfileModel> get availableProviders => _availableProviders;
   List<ServiceRequestModel> get requests => _requests;
@@ -84,7 +86,8 @@ class CustomerController extends ChangeNotifier {
 
     final srvRes = await ApiService.get('/api/services');
     if (srvRes.success && srvRes.data is List) {
-      _services = (srvRes.data as List).map((s) => ServiceModel.fromJson(s)).toList();
+      _allServices = (srvRes.data as List).map((s) => ServiceModel.fromJson(s)).toList();
+      _services = List.from(_allServices);
     }
 
     final provRes = await ApiService.get('/api/providers');
@@ -94,6 +97,13 @@ class CustomerController extends ChangeNotifier {
 
     _isLoading = false;
     notifyListeners();
+  }
+
+  void resetServicesToAll() {
+    if (_allServices.isNotEmpty) {
+      _services = List.from(_allServices);
+      notifyListeners();
+    }
   }
 
   Future<void> loadServicesForCategory(int categoryId) async {

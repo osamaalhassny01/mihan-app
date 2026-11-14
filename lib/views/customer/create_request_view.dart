@@ -8,7 +8,12 @@ import 'customer_request_detail_view.dart';
 
 class CreateRequestView extends StatefulWidget {
   final int? preselectedCategoryId;
-  const CreateRequestView({super.key, this.preselectedCategoryId});
+  final int? preselectedServiceId;
+  const CreateRequestView({
+    super.key,
+    this.preselectedCategoryId,
+    this.preselectedServiceId,
+  });
   @override
   State<CreateRequestView> createState() => _CreateRequestViewState();
 }
@@ -30,6 +35,9 @@ class _CreateRequestViewState extends State<CreateRequestView> {
   @override
   void initState() {
     super.initState();
+    if (widget.preselectedServiceId != null) {
+      _serviceId = widget.preselectedServiceId;
+    }
     WidgetsBinding.instance.addPostFrameCallback((_) => _loadCatalog());
   }
 
@@ -39,7 +47,14 @@ class _CreateRequestViewState extends State<CreateRequestView> {
     if (mounted && widget.preselectedCategoryId != null) {
       await controller.loadServicesForCategory(widget.preselectedCategoryId!);
     }
-    if (mounted) setState(() => _loadingCatalog = false);
+    if (mounted) {
+      setState(() {
+        if (widget.preselectedServiceId != null) {
+          _serviceId = widget.preselectedServiceId;
+        }
+        _loadingCatalog = false;
+      });
+    }
   }
 
   @override

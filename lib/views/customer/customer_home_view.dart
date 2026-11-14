@@ -2,6 +2,7 @@ import '../notifications/notifications_view.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../config/app_theme.dart';
+import '../../config/currency_helper.dart';
 import '../../controllers/auth_controller.dart';
 import '../../controllers/customer_controller.dart';
 import '../widgets/presentation_widgets.dart';
@@ -91,15 +92,53 @@ class _CustomerHomeViewState extends State<CustomerHomeView> {
     return colors[index % colors.length];
   }
 
+  static String _normalizeArabic(String text) {
+    var s = text.trim().toLowerCase();
+    s = s.replaceAll(RegExp(r'[إأآا]'), 'ا');
+    s = s.replaceAll(RegExp(r'[ةه]'), 'ه');
+    s = s.replaceAll(RegExp(r'[يى]'), 'ي');
+    s = s.replaceAll(RegExp(r'[\u064B-\u065F\u0670]'), '');
+    return s;
+  }
+
+  static bool _matchArabic(String source, String query) {
+    if (query.trim().isEmpty) return true;
+    final normSource = _normalizeArabic(source);
+    final normQuery = _normalizeArabic(query);
+    if (normSource.contains(normQuery)) return true;
+
+    final words = normQuery.split(RegExp(r'\s+')).where((w) => w.isNotEmpty).toList();
+    for (final w in words) {
+      if (normSource.contains(w)) return true;
+      if (w.startsWith('ال') && w.length > 3 && normSource.contains(w.substring(2))) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthController>();
     final customer = context.watch<CustomerController>();
 
+    final isSearching = _searchQuery.trim().isNotEmpty;
+
+    // Search in services (both name, description, and category name)
+    final matchingServices = customer.allServices.where((srv) {
+      if (!isSearching) return false;
+      return _matchArabic(srv.nameAr, _searchQuery) ||
+          (srv.nameEn != null && srv.nameEn!.toLowerCase().contains(_searchQuery.trim().toLowerCase())) ||
+          (srv.description != null && _matchArabic(srv.description!, _searchQuery)) ||
+          (srv.categoryNameAr != null && _matchArabic(srv.categoryNameAr!, _searchQuery));
+    }).toList();
+
+    // Search in categories (by category name OR if category contains a matching service)
     final filteredCategories = customer.categories.where((cat) {
-      if (_searchQuery.trim().isEmpty) return true;
-      return cat.nameAr.contains(_searchQuery.trim()) ||
-          (cat.nameEn ?? '').toLowerCase().contains(_searchQuery.trim().toLowerCase());
+      if (!isSearching) return true;
+      if (_matchArabic(cat.nameAr, _searchQuery)) return true;
+      if (cat.nameEn != null && cat.nameEn!.toLowerCase().contains(_searchQuery.trim().toLowerCase())) return true;
+      return matchingServices.any((s) => s.categoryId == cat.id);
     }).toList();
 
     return Scaffold(
@@ -469,32 +508,154 @@ class _CustomerHomeViewState extends State<CustomerHomeView> {
                     ),
                     const SizedBox(height: 24),
 
-                    // Section Header
-                    SectionHeader(
-                      title: 'أقسام الخدمات الفنية (${filteredCategories.length})',
-                      actionText: 'طلب مخصص',
-                      onAction: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(builder: (_) => const CreateRequestView()),
-                        );
-                      },
-                    ),
-                    const SizedBox(height: 14),
-
-                    // Categories Grid
-                    if (filteredCategories.isEmpty)
-                      EmptyStateWidget(
-                        icon: Icons.search_off_rounded,
-                        title: 'لا توجد نتائج مطابقة',
-                        message: 'لم يتم العثور على أقسام تطابق "$_searchQuery"',
-                        onRetry: () {
-                          setState(() {
-                            _searchController.clear();
-                            _searchQuery = '';
-                          });
+                    // 1. Direct Matching Services (when searching)
+                    if (isSearching && matchingServices.isNotEmpty) ...[
+                      SectionHeader(
+                        title: 'الخدمات الفنية المطابقة (${matchingServices.length})',
+                        actionText: 'طلب مخصص',
+                        onAction: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(builder: (_) => const CreateRequestView()),
+                          );
                         },
-                      )
-                    else
+                      ),
+                      const SizedBox(height: 12),
+                      ListView.separated(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: matchingServices.length,
+                        separatorBuilder: (_, __) => const SizedBox(height: 10),
+                        itemBuilder: (context, index) {
+                          final srv = matchingServices[index];
+                          return InkWell(
+                            borderRadius: BorderRadius.circular(18),
+                            onTap: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) => CreateRequestView(
+                                    preselectedCategoryId: srv.categoryId,
+                                    preselectedServiceId: srv.id,
+                                  ),
+                                ),
+                              );
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(18),
+                                border: Border.all(color: AppTheme.secondary.withValues(alpha: 0.35), width: 1.2),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: AppTheme.secondary.withValues(alpha: 0.06),
+                                    blurRadius: 14,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    width: 44,
+                                    height: 44,
+                                    decoration: BoxDecoration(
+                                      color: AppTheme.secondary.withValues(alpha: 0.1),
+                                      borderRadius: BorderRadius.circular(14),
+                                    ),
+                                    child: const Icon(Icons.handyman_rounded, color: AppTheme.secondary, size: 22),
+                                  ),
+                                  const SizedBox(width: 14),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          srv.nameAr,
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 14.5,
+                                            color: AppTheme.textPrimary,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Row(
+                                          children: [
+                                            if (srv.categoryNameAr != null) ...[
+                                              Container(
+                                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                                decoration: BoxDecoration(
+                                                  color: AppTheme.primary.withValues(alpha: 0.08),
+                                                  borderRadius: BorderRadius.circular(6),
+                                                ),
+                                                child: Text(
+                                                  srv.categoryNameAr!,
+                                                  style: const TextStyle(
+                                                    fontSize: 11,
+                                                    color: AppTheme.primary,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                              ),
+                                              const SizedBox(width: 8),
+                                            ],
+                                            if (srv.basePrice > 0)
+                                              Text(
+                                                'تبدأ من ${CurrencyHelper.format(srv.basePrice)} ر.ي',
+                                                style: const TextStyle(
+                                                  fontSize: 11,
+                                                  color: AppTheme.success,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  ElevatedButton.icon(
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: AppTheme.secondary,
+                                      foregroundColor: Colors.white,
+                                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                      elevation: 0,
+                                    ),
+                                    onPressed: () {
+                                      Navigator.of(context).push(
+                                        MaterialPageRoute(
+                                          builder: (_) => CreateRequestView(
+                                            preselectedCategoryId: srv.categoryId,
+                                            preselectedServiceId: srv.id,
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                    icon: const Icon(Icons.add_task_rounded, size: 16),
+                                    label: const Text('طلب الخدمة', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                      const SizedBox(height: 24),
+                    ],
+
+                    // 2. Categories Section
+                    if (filteredCategories.isNotEmpty) ...[
+                      SectionHeader(
+                        title: isSearching
+                            ? 'أقسام وتخصصات ذات صلة (${filteredCategories.length})'
+                            : 'أقسام الخدمات الفنية (${filteredCategories.length})',
+                        actionText: 'طلب مخصص',
+                        onAction: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(builder: (_) => const CreateRequestView()),
+                          );
+                        },
+                      ),
+                      const SizedBox(height: 14),
                       GridView.builder(
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
@@ -581,7 +742,7 @@ class _CustomerHomeViewState extends State<CustomerHomeView> {
                                     ),
                                     child: Text(
                                       '${cat.servicesCount} خدمات متاحة',
-                                      style: TextStyle(
+                                      style: const TextStyle(
                                         fontSize: 11,
                                         color: AppTheme.textSecondary,
                                         fontWeight: FontWeight.w600,
@@ -594,6 +755,20 @@ class _CustomerHomeViewState extends State<CustomerHomeView> {
                           );
                         },
                       ),
+                    ] else if (isSearching && matchingServices.isEmpty) ...[
+                      EmptyStateWidget(
+                        icon: Icons.search_off_rounded,
+                        title: 'لم نجد نتيجة مطابقة لـ "$_searchQuery"',
+                        message: 'يمكنك تقديم طلب مخصص بالمشكلة وسيقوم فريق مِهَن ومقدمو الخدمة بتنفيذه لك فوراً.',
+                        retryText: 'تقديم طلب مخصص الآن',
+                        retryIcon: Icons.add_task_rounded,
+                        onRetry: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(builder: (_) => const CreateRequestView()),
+                          );
+                        },
+                      ),
+                    ],
                   ],
                 ),
               ),

@@ -465,6 +465,8 @@ class EmptyStateWidget extends StatelessWidget {
   final String title;
   final String message;
   final VoidCallback? onRetry;
+  final String? retryText;
+  final IconData? retryIcon;
 
   const EmptyStateWidget({
     super.key,
@@ -472,6 +474,8 @@ class EmptyStateWidget extends StatelessWidget {
     required this.title,
     required this.message,
     this.onRetry,
+    this.retryText,
+    this.retryIcon,
   });
 
   @override
@@ -513,8 +517,8 @@ class EmptyStateWidget extends StatelessWidget {
               const SizedBox(height: 18),
               ElevatedButton.icon(
                 onPressed: onRetry,
-                icon: const Icon(Icons.refresh, size: 18),
-                label: const Text('إعادة المحاولة'),
+                icon: Icon(retryIcon ?? Icons.refresh, size: 18),
+                label: Text(retryText ?? 'إعادة المحاولة'),
               ),
             ],
           ],

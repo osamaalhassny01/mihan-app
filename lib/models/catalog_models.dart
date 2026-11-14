@@ -41,6 +41,7 @@ class ServiceModel {
   final String? nameEn;
   final String? description;
   final double basePrice;
+  final String? categoryNameAr;
 
   const ServiceModel({
     required this.id,
@@ -49,6 +50,7 @@ class ServiceModel {
     this.nameEn,
     this.description,
     this.basePrice = 0.0,
+    this.categoryNameAr,
   });
 
   factory ServiceModel.fromJson(Map<String, dynamic> json) {
@@ -59,6 +61,7 @@ class ServiceModel {
       nameEn: json['name_en']?.toString(),
       description: json['description']?.toString(),
       basePrice: json['base_price'] is num ? (json['base_price'] as num).toDouble() : double.tryParse(json['base_price']?.toString() ?? '0') ?? 0.0,
+      categoryNameAr: json['category_name_ar']?.toString() ?? json['category_name']?.toString(),
     );
   }
 }
