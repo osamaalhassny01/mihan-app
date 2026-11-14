@@ -271,20 +271,34 @@ class _EmployeeMainViewState extends State<EmployeeMainView> {
             Row(
               children: [
                 Expanded(
-                  child: StatCard(
-                    title: 'إجمالي الطلبات',
-                    value: '${_stats?['total_requests'] ?? 0}',
-                    icon: Icons.receipt_long_rounded,
-                    color: const Color(0xFF6366F1),
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(16),
+                    onTap: () => setState(() {
+                      _currentIndex = 1;
+                      _requestStatusFilter = 'all';
+                    }),
+                    child: StatCard(
+                      title: 'إجمالي الطلبات',
+                      value: '${_stats?['total_requests'] ?? 0}',
+                      icon: Icons.receipt_long_rounded,
+                      color: const Color(0xFF6366F1),
+                    ),
                   ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: StatCard(
-                    title: 'طلبات جديدة',
-                    value: '${_stats?['pending_requests'] ?? 0}',
-                    icon: Icons.hourglass_top_rounded,
-                    color: AppTheme.warning,
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(16),
+                    onTap: () => setState(() {
+                      _currentIndex = 1;
+                      _requestStatusFilter = 'pending';
+                    }),
+                    child: StatCard(
+                      title: 'طلبات جديدة',
+                      value: '${_stats?['pending_requests'] ?? 0}',
+                      icon: Icons.hourglass_top_rounded,
+                      color: AppTheme.warning,
+                    ),
                   ),
                 ),
               ],
@@ -293,20 +307,31 @@ class _EmployeeMainViewState extends State<EmployeeMainView> {
             Row(
               children: [
                 Expanded(
-                  child: StatCard(
-                    title: 'قيد التنفيذ',
-                    value: '${_stats?['active_requests'] ?? 0}',
-                    icon: Icons.handyman_rounded,
-                    color: AppTheme.info,
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(16),
+                    onTap: () => setState(() {
+                      _currentIndex = 1;
+                      _requestStatusFilter = 'in_progress';
+                    }),
+                    child: StatCard(
+                      title: 'قيد التنفيذ',
+                      value: '${_stats?['active_requests'] ?? 0}',
+                      icon: Icons.handyman_rounded,
+                      color: AppTheme.info,
+                    ),
                   ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: StatCard(
-                    title: 'شكاوى مفتوحة',
-                    value: '${_stats?['open_complaints'] ?? 0}',
-                    icon: Icons.report_problem_rounded,
-                    color: AppTheme.error,
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(16),
+                    onTap: () => setState(() => _currentIndex = 2),
+                    child: StatCard(
+                      title: 'شكاوى مفتوحة',
+                      value: '${_stats?['open_complaints'] ?? 0}',
+                      icon: Icons.report_problem_rounded,
+                      color: AppTheme.error,
+                    ),
                   ),
                 ),
               ],
@@ -332,51 +357,13 @@ class _EmployeeMainViewState extends State<EmployeeMainView> {
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 itemCount: _recentRequests.length,
-                separatorBuilder: (_, __) => const SizedBox(height: 10),
+                separatorBuilder: (_, __) => const SizedBox(height: 12),
                 itemBuilder: (context, i) {
-                  final req = _recentRequests[i];
-                  return Container(
-                    padding: const EdgeInsets.all(14),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: AppTheme.border),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              req['request_number'] ?? 'REQ',
-                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppTheme.primary),
-                            ),
-                            StatusBadge(
-                              status: req['status'] ?? 'pending',
-                              label: _getStatusArabic(req['status'] ?? 'pending'),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 6),
-                        Text(
-                          req['service_name'] ?? 'خدمة فنية',
-                          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
-                        ),
-                        const SizedBox(height: 4),
-                        Row(
-                          children: [
-                            const Icon(Icons.person_outline, size: 14, color: AppTheme.textSecondary),
-                            const SizedBox(width: 4),
-                            Text('العميل: ${req['customer_name'] ?? "-"}', style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
-                            const Spacer(),
-                            const Icon(Icons.handyman_outlined, size: 14, color: AppTheme.textSecondary),
-                            const SizedBox(width: 4),
-                            Text('المزود: ${req['provider_name'] ?? "لم يحدد"}', style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
-                          ],
-                        ),
-                      ],
-                    ),
+                  final req = _recentRequests[i] as Map<String, dynamic>;
+                  return ManagementRequestCard(
+                    request: req,
+                    isAdmin: false,
+                    onRefresh: _loadEmployeeData,
                   );
                 },
               ),
@@ -686,25 +673,5 @@ class _EmployeeMainViewState extends State<EmployeeMainView> {
     );
   }
 
-  String _getStatusArabic(String status) {
-    switch (status) {
-      case 'new':
-      case 'pending':
-        return 'بانتظار الموافقة';
-      case 'accepted':
-        return 'تم القبول';
-      case 'in_progress':
-        return 'قيد التنفيذ';
-      case 'awaiting_confirmation':
-        return 'بانتظار الاستلام';
-      case 'completed':
-        return 'مكتمل';
-      case 'cancelled':
-        return 'ملغي';
-      case 'rejected':
-        return 'مرفوض';
-      default:
-        return status;
-    }
-  }
+
 }

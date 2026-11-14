@@ -937,7 +937,6 @@ class ManagementRequestCard extends StatelessWidget {
     final canAction = !['completed', 'cancelled'].contains(status);
 
     return Container(
-      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(18),
@@ -953,188 +952,230 @@ class ManagementRequestCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header: Request number & Status badge
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                '#$requestNumber',
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: AppTheme.primary),
-              ),
-              StatusBadge(
-                status: status,
-                label: _getStatusArabic(status),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-
-          // Service & Description
-          Text(
-            serviceName,
-            style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
-          ),
-          if (request['description'] != null && request['description'].toString().isNotEmpty) ...[
-            const SizedBox(height: 4),
-            Text(
-              request['description'].toString(),
-              style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
+          // Tappable card header & body for instant details & tracking
+          InkWell(
+            onTap: () => ManagementRequestActions.showTrackingSheet(
+              context,
+              requestId: requestId,
+              isAdmin: isAdmin,
+              onRefresh: onRefresh,
             ),
-          ],
-          const SizedBox(height: 10),
-
-          // Customer and Provider info
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            decoration: BoxDecoration(
-              color: AppTheme.background,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Row(
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Header: Request number & Status badge
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Icon(Icons.person_outline, size: 14, color: AppTheme.textSecondary),
-                      const SizedBox(width: 4),
-                      Flexible(
-                        child: Text(
-                          customerName,
-                          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Container(width: 1, height: 16, color: AppTheme.border),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Row(
-                    children: [
-                      Icon(
-                        providerName != null ? Icons.check_circle_outline : Icons.hourglass_top_outlined,
-                        size: 14,
-                        color: providerName != null ? AppTheme.success : AppTheme.warning,
-                      ),
-                      const SizedBox(width: 4),
-                      Flexible(
-                        child: Text(
-                          providerName ?? 'بانتظار التوجيه',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: providerName != null ? AppTheme.success : AppTheme.warning,
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            '#$requestNumber',
+                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: AppTheme.primary),
                           ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: AppTheme.primary.withValues(alpha: 0.08),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.touch_app_outlined, size: 11, color: AppTheme.primary),
+                                SizedBox(width: 2),
+                                Text('عرض التفاصيل', style: TextStyle(fontSize: 10, color: AppTheme.primary, fontWeight: FontWeight.bold)),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      StatusBadge(
+                        status: status,
+                        label: _getStatusArabic(status),
                       ),
                     ],
                   ),
-                ),
-              ],
+                  const SizedBox(height: 10),
+
+                  // Service & Description
+                  Text(
+                    serviceName,
+                    style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
+                  ),
+                  if (request['description'] != null && request['description'].toString().isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      request['description'].toString(),
+                      style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                  const SizedBox(height: 10),
+
+                  // Customer and Provider info
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: AppTheme.background,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Row(
+                            children: [
+                              const Icon(Icons.person_outline, size: 14, color: AppTheme.textSecondary),
+                              const SizedBox(width: 4),
+                              Flexible(
+                                child: Text(
+                                  customerName,
+                                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Container(width: 1, height: 16, color: AppTheme.border),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Row(
+                            children: [
+                              Icon(
+                                providerName != null ? Icons.check_circle_outline : Icons.hourglass_top_outlined,
+                                size: 14,
+                                color: providerName != null ? AppTheme.success : AppTheme.warning,
+                              ),
+                              const SizedBox(width: 4),
+                              Flexible(
+                                child: Text(
+                                  providerName ?? 'بانتظار التوجيه',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                    color: providerName != null ? AppTheme.success : AppTheme.warning,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+
+                  // Price row
+                  Row(
+                    children: [
+                      const Text('السعر: ', style: TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
+                      if (price != null)
+                        Text(
+                          '${CurrencyHelper.format(price)} ر.ي',
+                          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppTheme.success),
+                        )
+                      else if (budget != null)
+                        Text(
+                          'الميزانية: ${CurrencyHelper.format(budget)} ر.ي',
+                          style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+                        )
+                      else
+                        const Text('غير محدد بعد', style: TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
-          const SizedBox(height: 10),
-
-          // Price row
-          Row(
-            children: [
-              const Text('السعر: ', style: TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
-              if (price != null)
-                Text(
-                  '${CurrencyHelper.format(price)} ر.ي',
-                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppTheme.success),
-                )
-              else if (budget != null)
-                Text(
-                  'الميزانية: ${CurrencyHelper.format(budget)} ر.ي',
-                  style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary),
-                )
-              else
-                const Text('غير محدد بعد', style: TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
-            ],
-          ),
-          const Divider(height: 20),
+          const Divider(height: 1),
 
           // Action Buttons: 1. قبول وتحويل  2. إلغاء الطلب  3. متابعة الطلب
-          Row(
-            children: [
-              // Button 1: Accept & Forward to Provider with Price
-              if (canAction) ...[
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: Row(
+              children: [
+                // Button 1: Accept & Forward to Provider with Price
+                if (canAction) ...[
+                  Expanded(
+                    flex: 3,
+                    child: ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppTheme.success,
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        elevation: 0,
+                      ),
+                      icon: const Icon(Icons.how_to_reg_rounded, size: 16, color: Colors.white),
+                      label: const Text(
+                        'قبول وتحويل',
+                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white),
+                      ),
+                      onPressed: () => ManagementRequestActions.showForwardModal(
+                        context,
+                        requestId: requestId,
+                        requestNumber: requestNumber,
+                        serviceName: serviceName,
+                        customerName: customerName,
+                        currentPrice: price,
+                        currentBudget: budget,
+                        isAdmin: isAdmin,
+                        onRefresh: onRefresh,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  // Button 2: Cancel Request
+                  Expanded(
+                    flex: 2,
+                    child: OutlinedButton(
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: AppTheme.error,
+                        side: const BorderSide(color: AppTheme.error, width: 1.2),
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      ),
+                      child: const Text('إلغاء', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                      onPressed: () => ManagementRequestActions.showCancelDialog(
+                        context,
+                        requestId: requestId,
+                        requestNumber: requestNumber,
+                        isAdmin: isAdmin,
+                        onRefresh: onRefresh,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                ],
+                // Button 3: Track Request
                 Expanded(
                   flex: 3,
-                  child: ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.success,
-                      padding: const EdgeInsets.symmetric(vertical: 10),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                      elevation: 0,
-                    ),
-                    icon: const Icon(Icons.how_to_reg_rounded, size: 16, color: Colors.white),
-                    label: const Text(
-                      'قبول وتحويل',
-                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white),
-                    ),
-                    onPressed: () => ManagementRequestActions.showForwardModal(
-                      context,
-                      requestId: requestId,
-                      requestNumber: requestNumber,
-                      serviceName: serviceName,
-                      customerName: customerName,
-                      currentPrice: price,
-                      currentBudget: budget,
-                      isAdmin: isAdmin,
-                      onRefresh: onRefresh,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 6),
-                // Button 2: Cancel Request
-                Expanded(
-                  flex: 2,
-                  child: OutlinedButton(
+                  child: OutlinedButton.icon(
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: AppTheme.error,
-                      side: const BorderSide(color: AppTheme.error, width: 1.2),
+                      foregroundColor: AppTheme.primary,
+                      side: const BorderSide(color: AppTheme.primary, width: 1.2),
                       padding: const EdgeInsets.symmetric(vertical: 10),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                     ),
-                    child: const Text('إلغاء', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-                    onPressed: () => ManagementRequestActions.showCancelDialog(
+                    icon: const Icon(Icons.route_outlined, size: 14),
+                    label: const Text('عرض وتتبع', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                    onPressed: () => ManagementRequestActions.showTrackingSheet(
                       context,
                       requestId: requestId,
-                      requestNumber: requestNumber,
                       isAdmin: isAdmin,
                       onRefresh: onRefresh,
                     ),
                   ),
                 ),
-                const SizedBox(width: 6),
               ],
-              // Button 3: Track Request
-              Expanded(
-                flex: 2,
-                child: OutlinedButton.icon(
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: AppTheme.primary,
-                    side: const BorderSide(color: AppTheme.primary, width: 1.2),
-                    padding: const EdgeInsets.symmetric(vertical: 10),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                  ),
-                  icon: const Icon(Icons.route_outlined, size: 14),
-                  label: const Text('متابعة', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-                  onPressed: () => ManagementRequestActions.showTrackingSheet(
-                    context,
-                    requestId: requestId,
-                    isAdmin: isAdmin,
-                    onRefresh: onRefresh,
-                  ),
-                ),
-              ),
-            ],
+            ),
           ),
         ],
       ),
