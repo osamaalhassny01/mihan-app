@@ -198,10 +198,19 @@ class _ProviderRequestsViewState extends State<ProviderRequestsView> {
                                               style: ElevatedButton.styleFrom(backgroundColor: AppTheme.secondary),
                                               onPressed: provider.isActionLoading ? null : () async {
                                                 final ok = await provider.acceptRequest(req.id);
-                                                if (ok && context.mounted) {
-                                                  ScaffoldMessenger.of(context).showSnackBar(
-                                                    const SnackBar(content: Text('تم قبول الطلب بنجاح!'), backgroundColor: AppTheme.success),
-                                                  );
+                                                if (context.mounted) {
+                                                  if (ok) {
+                                                    ScaffoldMessenger.of(context).showSnackBar(
+                                                      const SnackBar(content: Text('تم قبول الطلب بنجاح!'), backgroundColor: AppTheme.success),
+                                                    );
+                                                  } else {
+                                                    ScaffoldMessenger.of(context).showSnackBar(
+                                                      SnackBar(
+                                                        content: Text(provider.errorMessage ?? 'تعذر قبول الطلب في حالته الحالية.'),
+                                                        backgroundColor: AppTheme.error,
+                                                      ),
+                                                    );
+                                                  }
                                                 }
                                               },
                                               child: const Text('قبول الطلب'),
@@ -213,10 +222,19 @@ class _ProviderRequestsViewState extends State<ProviderRequestsView> {
                                               style: OutlinedButton.styleFrom(foregroundColor: AppTheme.error),
                                               onPressed: provider.isActionLoading ? null : () async {
                                                 final ok = await provider.rejectRequest(req.id);
-                                                if (ok && context.mounted) {
-                                                  ScaffoldMessenger.of(context).showSnackBar(
-                                                    const SnackBar(content: Text('تم رفض واستبعاد الطلب من قائمتك')),
-                                                  );
+                                                if (context.mounted) {
+                                                  if (ok) {
+                                                    ScaffoldMessenger.of(context).showSnackBar(
+                                                      const SnackBar(content: Text('تم رفض واستبعاد الطلب من قائمتك')),
+                                                    );
+                                                  } else {
+                                                    ScaffoldMessenger.of(context).showSnackBar(
+                                                      SnackBar(
+                                                        content: Text(provider.errorMessage ?? 'تعذر استبعاد الطلب في حالته الحالية.'),
+                                                        backgroundColor: AppTheme.error,
+                                                      ),
+                                                    );
+                                                  }
                                                 }
                                               },
                                               child: const Text('رفض'),

@@ -184,10 +184,19 @@ class _ProviderRequestDetailViewState extends State<ProviderRequestDetailView> {
                                 label: const Text('حجز الطلب'),
                                 onPressed: provider.isActionLoading ? null : () async {
                                   final ok = await provider.acceptRequest(req.id);
-                                  if (ok && context.mounted) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(content: Text('تم قبول الطلب بنجاح!'), backgroundColor: AppTheme.success),
-                                    );
+                                  if (context.mounted) {
+                                    if (ok) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(content: Text('تم قبول الطلب بنجاح!'), backgroundColor: AppTheme.success),
+                                      );
+                                    } else {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                          content: Text(provider.errorMessage ?? 'تعذر قبول الطلب في حالته الحالية.'),
+                                          backgroundColor: AppTheme.error,
+                                        ),
+                                      );
+                                    }
                                   }
                                 },
                               ),
@@ -200,11 +209,20 @@ class _ProviderRequestDetailViewState extends State<ProviderRequestDetailView> {
                                 label: const Text('اعتذار عن الطلب'),
                                 onPressed: provider.isActionLoading ? null : () async {
                                   final ok = await provider.rejectRequest(req.id);
-                                  if (ok && context.mounted) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(content: Text('تم رفض واستبعاد الطلب بنجاح')),
-                                    );
-                                    Navigator.of(context).pop();
+                                  if (context.mounted) {
+                                    if (ok) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(content: Text('تم رفض واستبعاد الطلب بنجاح')),
+                                      );
+                                      Navigator.of(context).pop();
+                                    } else {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                          content: Text(provider.errorMessage ?? 'تعذر استبعاد الطلب في حالته الحالية.'),
+                                          backgroundColor: AppTheme.error,
+                                        ),
+                                      );
+                                    }
                                   }
                                 },
                               ),
