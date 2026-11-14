@@ -9,10 +9,12 @@ import 'customer_request_detail_view.dart';
 class CreateRequestView extends StatefulWidget {
   final int? preselectedCategoryId;
   final int? preselectedServiceId;
+  final String? initialDescription;
   const CreateRequestView({
     super.key,
     this.preselectedCategoryId,
     this.preselectedServiceId,
+    this.initialDescription,
   });
   @override
   State<CreateRequestView> createState() => _CreateRequestViewState();
@@ -35,6 +37,9 @@ class _CreateRequestViewState extends State<CreateRequestView> {
   @override
   void initState() {
     super.initState();
+    if (widget.initialDescription != null && widget.initialDescription!.trim().isNotEmpty) {
+      _description.text = widget.initialDescription!.trim();
+    }
     if (widget.preselectedServiceId != null) {
       _serviceId = widget.preselectedServiceId;
     }
@@ -51,6 +56,14 @@ class _CreateRequestViewState extends State<CreateRequestView> {
       setState(() {
         if (widget.preselectedServiceId != null) {
           _serviceId = widget.preselectedServiceId;
+        } else if (_serviceId == null && widget.initialDescription != null && widget.initialDescription!.trim().isNotEmpty) {
+          final query = widget.initialDescription!.trim().toLowerCase();
+          for (final s in controller.services) {
+            if (s.nameAr.toLowerCase().contains(query) || query.contains(s.nameAr.toLowerCase())) {
+              _serviceId = s.id;
+              break;
+            }
+          }
         }
         _loadingCatalog = false;
       });

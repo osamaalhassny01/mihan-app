@@ -55,6 +55,8 @@ class _AdminMainViewState extends State<AdminMainView> {
 
       if (reqRes.success && reqRes.data is List) {
         _requests = reqRes.data as List;
+      } else if (dashRes.success && dashRes.data is Map && dashRes.data['recent_requests'] is List) {
+        _requests = dashRes.data['recent_requests'] as List;
       }
     });
   }
@@ -281,6 +283,14 @@ class _AdminMainViewState extends State<AdminMainView> {
 
   Widget _buildDashboardTab(dynamic user) {
     final d = _dashboardData;
+    final requestsSource = _requests.isNotEmpty
+        ? _requests
+        : ((d?['recent_requests'] as List?) ?? []);
+    final pendingList = requestsSource.where((r) {
+      final st = (r['status'] ?? '').toString();
+      return st == 'pending' || st == 'new';
+    }).toList();
+
     return RefreshIndicator(
       onRefresh: _loadAdminData,
       child: SingleChildScrollView(
@@ -358,11 +368,15 @@ class _AdminMainViewState extends State<AdminMainView> {
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: StatCard(
-                    title: 'إجمالي الطلبات',
-                    value: '${d?['requests_count'] ?? 0}',
-                    icon: Icons.receipt_long_rounded,
-                    color: AppTheme.secondary,
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(16),
+                    onTap: () => setState(() => _currentIndex = 1),
+                    child: StatCard(
+                      title: 'إجمالي الطلبات',
+                      value: '${d?['requests_count'] ?? 0}',
+                      icon: Icons.receipt_long_rounded,
+                      color: AppTheme.secondary,
+                    ),
                   ),
                 ),
               ],
@@ -411,6 +425,51 @@ class _AdminMainViewState extends State<AdminMainView> {
                 ),
               ],
             ),
+            const SizedBox(height: 24),
+
+            // Recent Requests Direct Stream on Dashboard
+            SectionHeader(
+              title: 'أحدث طلبات الخدمة بانتظار التوجيه (${pendingList.length})',
+              actionText: 'عرض الكل',
+              onAction: () => setState(() => _currentIndex = 1),
+            ),
+            const SizedBox(height: 12),
+            if (pendingList.isEmpty)
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: AppTheme.border),
+                ),
+                child: const Row(
+                  children: [
+                    Icon(Icons.check_circle_outline_rounded, color: AppTheme.success, size: 24),
+                    SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        'لا توجد طلبات معلقة بانتظار التوجيه حالياً، كل الطلبات معالجة.',
+                        style: TextStyle(fontSize: 13, color: AppTheme.textSecondary),
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            else
+              ListView.separated(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: pendingList.length > 5 ? 5 : pendingList.length,
+                separatorBuilder: (_, __) => const SizedBox(height: 10),
+                itemBuilder: (context, i) {
+                  final req = pendingList[i] as Map<String, dynamic>;
+                  return ManagementRequestCard(
+                    request: req,
+                    isAdmin: true,
+                    onRefresh: _loadAdminData,
+                  );
+                },
+              ),
             const SizedBox(height: 24),
 
             // Web Dashboard Notification Card

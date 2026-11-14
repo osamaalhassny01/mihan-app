@@ -515,7 +515,7 @@ class _CustomerHomeViewState extends State<CustomerHomeView> {
                         actionText: 'طلب مخصص',
                         onAction: () {
                           Navigator.of(context).push(
-                            MaterialPageRoute(builder: (_) => const CreateRequestView()),
+                            MaterialPageRoute(builder: (_) => CreateRequestView(initialDescription: isSearching ? _searchQuery : null)),
                           );
                         },
                       ),
@@ -651,7 +651,7 @@ class _CustomerHomeViewState extends State<CustomerHomeView> {
                         actionText: 'طلب مخصص',
                         onAction: () {
                           Navigator.of(context).push(
-                            MaterialPageRoute(builder: (_) => const CreateRequestView()),
+                            MaterialPageRoute(builder: (_) => CreateRequestView(initialDescription: isSearching ? _searchQuery : null)),
                           );
                         },
                       ),
@@ -764,7 +764,7 @@ class _CustomerHomeViewState extends State<CustomerHomeView> {
                         retryIcon: Icons.add_task_rounded,
                         onRetry: () {
                           Navigator.of(context).push(
-                            MaterialPageRoute(builder: (_) => const CreateRequestView()),
+                            MaterialPageRoute(builder: (_) => CreateRequestView(initialDescription: _searchQuery)),
                           );
                         },
                       ),
