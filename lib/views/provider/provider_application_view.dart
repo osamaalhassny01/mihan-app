@@ -108,9 +108,9 @@ class _ProviderApplicationViewState extends State<ProviderApplicationView> {
     try {
       final XFile? image = await _picker.pickImage(
         source: ImageSource.gallery,
-        maxWidth: 1200,
-        maxHeight: 1200,
-        imageQuality: 85,
+        maxWidth: 1024,
+        maxHeight: 1024,
+        imageQuality: 75,
       );
 
       if (image != null) {
@@ -159,7 +159,11 @@ class _ProviderApplicationViewState extends State<ProviderApplicationView> {
       payload['certificate_base64'] = _pickedImageBase64;
     }
 
-    final res = await ApiService.post('/api/provider/apply', payload);
+    final res = await ApiService.post(
+      '/api/provider/apply',
+      payload,
+      customTimeout: const Duration(seconds: 45),
+    );
     setState(() => _isLoading = false);
 
     if (res.success) {
@@ -368,6 +372,11 @@ class _ProviderApplicationViewState extends State<ProviderApplicationView> {
                           controller: _yearsExpController,
                           keyboardType: TextInputType.number,
                           prefixIcon: Icons.timer_outlined,
+                          validator: (v) {
+                            if (v == null || v.trim().isEmpty) return 'يرجى إدخال سنوات الخبرة';
+                            if (int.tryParse(v.trim()) == null) return 'أرقام فقط';
+                            return null;
+                          },
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -377,6 +386,10 @@ class _ProviderApplicationViewState extends State<ProviderApplicationView> {
                           hint: 'للتدقيق الإداري',
                           controller: _nationalIdController,
                           prefixIcon: Icons.badge_outlined,
+                          validator: (v) {
+                            if (v == null || v.trim().isEmpty) return 'يرجى إدخال رقم الهوية';
+                            return null;
+                          },
                         ),
                       ),
                     ],
