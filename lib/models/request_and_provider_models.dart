@@ -10,6 +10,7 @@ class ProviderProfileModel {
   final String? bio;
   final String? providerName;
   final String? profilePhoto;
+  final String? applicationStatus;
 
   const ProviderProfileModel({
     required this.id,
@@ -23,6 +24,7 @@ class ProviderProfileModel {
     this.bio,
     this.providerName,
     this.profilePhoto,
+    this.applicationStatus,
   });
 
   factory ProviderProfileModel.fromJson(Map<String, dynamic> json) {
@@ -51,6 +53,7 @@ class ProviderProfileModel {
       providerName:
           json['name']?.toString() ?? json['provider_name']?.toString(),
       profilePhoto: json['profile_photo']?.toString(),
+      applicationStatus: json['application_status']?.toString(),
     );
   }
 }

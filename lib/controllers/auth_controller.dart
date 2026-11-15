@@ -148,6 +148,29 @@ class AuthController extends ChangeNotifier {
     }
   }
 
+  Future<void> refreshUser() async {
+    try {
+      final token = await StorageService.getToken();
+      if (token == null || token.isEmpty) return;
+
+      final res = await ApiService.get('/api/me');
+      if (res.success && res.data != null) {
+        if (res.data['user'] != null) {
+          final userMap = res.data['user'] as Map<String, dynamic>;
+          _currentUser = UserModel.fromJson(userMap);
+          await StorageService.saveUser(_currentUser!);
+        }
+
+        if (res.data['provider_profile'] != null) {
+          _providerProfile = ProviderProfileModel.fromJson(res.data['provider_profile']);
+        }
+        notifyListeners();
+      }
+    } catch (e) {
+      debugPrint('Error refreshing user: $e');
+    }
+  }
+
   Future<void> logout() async {
     _isLoading = true;
     notifyListeners();

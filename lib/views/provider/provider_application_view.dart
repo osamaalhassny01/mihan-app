@@ -2,9 +2,12 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:provider/provider.dart';
 import '../../config/app_theme.dart';
+import '../../controllers/auth_controller.dart';
 import '../../models/catalog_models.dart';
 import '../../services/api_service.dart';
+import '../../services/storage_service.dart';
 import '../widgets/presentation_widgets.dart';
 
 class ProviderApplicationView extends StatefulWidget {
@@ -38,15 +41,32 @@ class _ProviderApplicationViewState extends State<ProviderApplicationView> {
   @override
   void initState() {
     super.initState();
+    _yearsExpController.addListener(_saveDraft);
+    _nationalIdController.addListener(_saveDraft);
+    _bioController.addListener(_saveDraft);
     _loadCatalogAndStatus();
   }
 
   @override
   void dispose() {
+    _yearsExpController.removeListener(_saveDraft);
+    _nationalIdController.removeListener(_saveDraft);
+    _bioController.removeListener(_saveDraft);
     _yearsExpController.dispose();
     _nationalIdController.dispose();
     _bioController.dispose();
     super.dispose();
+  }
+
+  void _saveDraft() {
+    if (!mounted) return;
+    StorageService.saveProviderApplicationDraft({
+      'service_id': _selectedServiceId,
+      'location_id': _selectedLocationId,
+      'years_exp': _yearsExpController.text.trim(),
+      'national_id': _nationalIdController.text.trim(),
+      'bio': _bioController.text.trim(),
+    });
   }
 
   Future<void> _loadCatalogAndStatus() async {
@@ -65,36 +85,105 @@ class _ProviderApplicationViewState extends State<ProviderApplicationView> {
 
     // 2. Load existing application status
     final res = await ApiService.get('/api/provider/application-status');
+    final draft = await StorageService.getProviderApplicationDraft();
+
     if (res.success && res.data != null) {
       final app = res.data['application'] as Map<String, dynamic>?;
+      final profile = res.data['profile'] as Map<String, dynamic>?;
       final active = res.data['is_active'] == true;
+      final backendServiceId = res.data['service_id'] is int
+          ? res.data['service_id'] as int
+          : int.tryParse(res.data['service_id']?.toString() ?? '');
+      final backendLocationId = res.data['location_id'] is int
+          ? res.data['location_id'] as int
+          : int.tryParse(res.data['location_id']?.toString() ?? '');
+
       setState(() {
         _existingApp = app;
         _isActive = active;
+
         if (app != null) {
           _yearsExpController.text = (app['years_exp'] ?? '').toString();
           _nationalIdController.text = app['national_id'] ?? '';
           _bioController.text = app['bio'] ?? '';
 
           // Match service if found
-          final profName = app['profession'] as String?;
-          if (profName != null) {
+          if (backendServiceId != null && _services.any((s) => s.id == backendServiceId)) {
+            _selectedServiceId = backendServiceId;
+          } else {
+            final profName = app['profession'] as String?;
+            if (profName != null) {
+              for (final s in _services) {
+                if (s.nameAr == profName || profName.contains(s.nameAr) || s.nameAr.contains(profName)) {
+                  _selectedServiceId = s.id;
+                  break;
+                }
+              }
+            }
+          }
+
+          // Match location if found
+          if (backendLocationId != null && _locations.any((l) => l.id == backendLocationId)) {
+            _selectedLocationId = backendLocationId;
+          } else {
+            final cityName = app['city'] as String?;
+            if (cityName != null) {
+              for (final l in _locations) {
+                if (l.nameAr == cityName || cityName.contains(l.nameAr) || l.nameAr.contains(cityName)) {
+                  _selectedLocationId = l.id;
+                  break;
+                }
+              }
+            }
+          }
+        } else if (profile != null) {
+          // Pre-populate from existing profile if available
+          final exp = profile['experience_years'];
+          if (exp != null && exp.toString() != '0') {
+            _yearsExpController.text = exp.toString();
+          }
+          if (profile['bio'] != null && profile['bio'].toString().isNotEmpty) {
+            _bioController.text = profile['bio'].toString();
+          }
+
+          if (backendServiceId != null && _services.any((s) => s.id == backendServiceId)) {
+            _selectedServiceId = backendServiceId;
+          } else if (profile['profession'] != null) {
+            final profName = profile['profession'] as String;
             for (final s in _services) {
-              if (s.nameAr == profName || profName.contains(s.nameAr)) {
+              if (s.nameAr == profName || profName.contains(s.nameAr) || s.nameAr.contains(profName)) {
                 _selectedServiceId = s.id;
                 break;
               }
             }
           }
 
-          // Match location if found
-          final cityName = app['city'] as String?;
-          if (cityName != null) {
-            for (final l in _locations) {
-              if (l.nameAr == cityName || cityName.contains(l.nameAr)) {
-                _selectedLocationId = l.id;
-                break;
-              }
+          if (backendLocationId != null && _locations.any((l) => l.id == backendLocationId)) {
+            _selectedLocationId = backendLocationId;
+          }
+        }
+
+        // Restore local draft if fields are still empty
+        if (draft != null) {
+          if (_yearsExpController.text.isEmpty && draft['years_exp'] != null && draft['years_exp'].toString().isNotEmpty) {
+            _yearsExpController.text = draft['years_exp'].toString();
+          }
+          if (_nationalIdController.text.isEmpty && draft['national_id'] != null && draft['national_id'].toString().isNotEmpty) {
+            _nationalIdController.text = draft['national_id'].toString();
+          }
+          if (_bioController.text.isEmpty && draft['bio'] != null && draft['bio'].toString().isNotEmpty) {
+            _bioController.text = draft['bio'].toString();
+          }
+          if (_selectedServiceId == null && draft['service_id'] != null) {
+            final sid = int.tryParse(draft['service_id'].toString());
+            if (sid != null && _services.any((s) => s.id == sid)) {
+              _selectedServiceId = sid;
+            }
+          }
+          if (_selectedLocationId == null && draft['location_id'] != null) {
+            final lid = int.tryParse(draft['location_id'].toString());
+            if (lid != null && _locations.any((l) => l.id == lid)) {
+              _selectedLocationId = lid;
             }
           }
         }
@@ -168,6 +257,8 @@ class _ProviderApplicationViewState extends State<ProviderApplicationView> {
 
     if (res.success) {
       if (mounted) {
+        await context.read<AuthController>().refreshUser();
+        await StorageService.clearProviderApplicationDraft();
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('تم رفع طلبك ووثائقك بنجاح! سيتم مراجعته وتدقيقه إدارياً.'),
@@ -198,14 +289,21 @@ class _ProviderApplicationViewState extends State<ProviderApplicationView> {
 
     final status = _existingApp?['status'] as String?;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('طلب توثيق واعتماد مهني'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.of(context).pop(),
+    return PopScope(
+      onPopInvokedWithResult: (didPop, result) {
+        _saveDraft();
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('طلب توثيق واعتماد مهني'),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () {
+              _saveDraft();
+              Navigator.of(context).pop();
+            },
+          ),
         ),
-      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Column(
@@ -323,7 +421,10 @@ class _ProviderApplicationViewState extends State<ProviderApplicationView> {
                             child: Text(s.nameAr, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13.5)),
                           );
                         }).toList(),
-                        onChanged: (val) => setState(() => _selectedServiceId = val),
+                        onChanged: (val) {
+                          setState(() => _selectedServiceId = val);
+                          _saveDraft();
+                        },
                       ),
                     ),
                   ),
@@ -357,7 +458,10 @@ class _ProviderApplicationViewState extends State<ProviderApplicationView> {
                             child: Text(loc.nameAr, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13.5)),
                           );
                         }).toList(),
-                        onChanged: (val) => setState(() => _selectedLocationId = val),
+                        onChanged: (val) {
+                          setState(() => _selectedLocationId = val);
+                          _saveDraft();
+                        },
                       ),
                     ),
                   ),
@@ -490,6 +594,7 @@ class _ProviderApplicationViewState extends State<ProviderApplicationView> {
           ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 }

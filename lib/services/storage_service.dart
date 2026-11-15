@@ -116,6 +116,29 @@ class StorageService {
     await prefs.setString(_keyBaseUrl, url);
   }
 
+  static const String _keyProviderAppDraft = 'provider_app_draft';
+
+  static Future<void> saveProviderApplicationDraft(Map<String, dynamic> draft) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_keyProviderAppDraft, jsonEncode(draft));
+  }
+
+  static Future<Map<String, dynamic>?> getProviderApplicationDraft() async {
+    final prefs = await SharedPreferences.getInstance();
+    final raw = prefs.getString(_keyProviderAppDraft);
+    if (raw == null || raw.isEmpty) return null;
+    try {
+      return jsonDecode(raw) as Map<String, dynamic>;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  static Future<void> clearProviderApplicationDraft() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_keyProviderAppDraft);
+  }
+
   static Future<void> clearAuth() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_keyToken);
