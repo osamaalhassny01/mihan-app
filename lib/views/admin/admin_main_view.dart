@@ -2,6 +2,7 @@ import '../notifications/notifications_view.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../config/app_theme.dart';
+import '../../config/date_helper.dart';
 import '../../controllers/auth_controller.dart';
 import '../../services/api_service.dart';
 import '../widgets/presentation_widgets.dart';
@@ -673,6 +674,19 @@ class _AdminMainViewState extends State<AdminMainView> {
                                     '$profession • خبرة $years سنوات • $city',
                                     style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary),
                                   ),
+                                  if (app['created_at'] != null) ...[
+                                    const SizedBox(height: 4),
+                                    Row(
+                                      children: [
+                                        const Icon(Icons.access_time_rounded, size: 12, color: AppTheme.textSecondary),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          'تاريخ التقديم: ${DateHelper.formatDateTime(app['created_at'])}',
+                                          style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
                                 ],
                               ),
                             ),

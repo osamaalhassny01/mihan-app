@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../config/app_theme.dart';
+import '../../config/date_helper.dart';
 import '../../controllers/customer_controller.dart';
 import '../widgets/presentation_widgets.dart';
 import 'customer_request_detail_view.dart';
@@ -170,6 +171,28 @@ class _CustomerRequestsViewState extends State<CustomerRequestsView> {
                                       ),
                                     ),
                                     const SizedBox(height: 14),
+                                    if (req.preferredDate != null || req.preferredTime != null) ...[
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                        decoration: BoxDecoration(
+                                          color: AppTheme.primary.withValues(alpha: 0.08),
+                                          borderRadius: BorderRadius.circular(10),
+                                          border: Border.all(color: AppTheme.primary.withValues(alpha: 0.2)),
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            const Icon(Icons.event_note_rounded, size: 14, color: AppTheme.primary),
+                                            const SizedBox(width: 6),
+                                            Text(
+                                              'موعد الزيارة المطلوب: ${DateHelper.formatSchedule(req.preferredDate, req.preferredTime)}',
+                                              style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: AppTheme.primary),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      const SizedBox(height: 10),
+                                    ],
                                     const Divider(height: 1),
                                     const SizedBox(height: 10),
                                     Row(
@@ -187,7 +210,7 @@ class _CustomerRequestsViewState extends State<CustomerRequestsView> {
                                           ),
                                           const Spacer(),
                                         ] else ...[
-                                          const Icon(Icons.access_time_rounded, size: 15, color: AppTheme.textSecondary),
+                                          const Icon(Icons.hourglass_empty_rounded, size: 14, color: AppTheme.textSecondary),
                                           const SizedBox(width: 4),
                                           const Text(
                                             'بانتظار قبول فني',
@@ -197,11 +220,11 @@ class _CustomerRequestsViewState extends State<CustomerRequestsView> {
                                         ],
                                         Row(
                                           children: [
-                                            const Icon(Icons.calendar_today_outlined, size: 13, color: AppTheme.textSecondary),
+                                            const Icon(Icons.access_time_rounded, size: 13, color: AppTheme.textSecondary),
                                             const SizedBox(width: 4),
                                             Text(
-                                              req.createdAt.split(' ')[0],
-                                              style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+                                              DateHelper.formatRelative(req.createdAt),
+                                              style: const TextStyle(fontSize: 11.5, color: AppTheme.textSecondary),
                                             ),
                                           ],
                                         ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../config/app_theme.dart';
 import '../../config/currency_helper.dart';
+import '../../config/date_helper.dart';
 import '../../controllers/provider_controller.dart';
 import '../widgets/presentation_widgets.dart';
 import '../widgets/request_workflow_widgets.dart';
@@ -144,7 +145,19 @@ class _ProviderRequestDetailViewState extends State<ProviderRequestDetailView> {
                             const SizedBox(height: 8),
                             _buildInfoRow('المنطقة / الموقع:', req.locationName ?? 'غير محدد'),
                             const SizedBox(height: 8),
-                            _buildInfoRow('تاريخ الطلب:', req.createdAt),
+                            _buildInfoRow('تاريخ الطلب:', DateHelper.formatDateTime(req.createdAt)),
+                            if (req.preferredDate != null || req.preferredTime != null) ...[
+                              const SizedBox(height: 8),
+                              _buildInfoRow('موعد الزيارة المطلوب:', DateHelper.formatSchedule(req.preferredDate, req.preferredTime)),
+                            ],
+                            if (req.visitAt != null && req.visitAt!.isNotEmpty) ...[
+                              const SizedBox(height: 8),
+                              _buildInfoRow('موعد الزيارة المعتمد:', DateHelper.formatDateTime(req.visitAt)),
+                            ],
+                            if (req.quoteDecidedAt != null && req.quoteDecidedAt!.isNotEmpty) ...[
+                              const SizedBox(height: 8),
+                              _buildInfoRow('توقيت الاعتماد والموافقة:', DateHelper.formatDateTime(req.quoteDecidedAt)),
+                            ],
                             if (req.budget != null) ...[
                               const SizedBox(height: 8),
                               _buildInfoRow('الميزانية المقترحة من العميل:', CurrencyHelper.format(req.budget)),

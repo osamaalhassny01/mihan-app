@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../config/app_theme.dart';
+import '../../config/date_helper.dart';
 import '../../controllers/auth_controller.dart';
 import '../../services/api_service.dart';
 import '../customer/customer_request_detail_view.dart';
@@ -231,8 +232,16 @@ class _NotificationsViewState extends State<NotificationsView> {
                                         maxLines: 3,
                                         overflow: TextOverflow.ellipsis),
                                     const SizedBox(height: 6),
-                                    Text(item['created_at']?.toString() ?? '',
-                                        style: const TextStyle(fontSize: 11)),
+                                    Row(
+                                      children: [
+                                        const Icon(Icons.access_time_rounded, size: 12, color: AppTheme.textSecondary),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          DateHelper.formatRelative(item['created_at']),
+                                          style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary),
+                                        ),
+                                      ],
+                                    ),
                                   ]),
                               onTap: () => _open(item),
                             ),

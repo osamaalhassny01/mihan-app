@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../config/app_theme.dart';
 import '../../config/currency_helper.dart';
+import '../../config/date_helper.dart';
 import '../../controllers/customer_controller.dart';
 import '../widgets/presentation_widgets.dart';
 import '../widgets/request_workflow_widgets.dart';
@@ -191,7 +192,19 @@ class _CustomerRequestDetailViewState extends State<CustomerRequestDetailView> {
                             const SizedBox(height: 12),
                             _buildInfoRow(Icons.location_on_outlined, 'المنطقة والموقع:', req.locationName ?? 'غير محدد', Colors.redAccent),
                             const SizedBox(height: 12),
-                            _buildInfoRow(Icons.calendar_today_rounded, 'تاريخ وتوقيت الطلب:', req.createdAt, AppTheme.primary),
+                            _buildInfoRow(Icons.access_time_rounded, 'تاريخ وتوقيت الطلب:', DateHelper.formatDateTime(req.createdAt), AppTheme.primary),
+                            if (req.preferredDate != null || req.preferredTime != null) ...[
+                              const SizedBox(height: 12),
+                              _buildInfoRow(Icons.event_note_rounded, 'موعد الزيارة المطلوب:', DateHelper.formatSchedule(req.preferredDate, req.preferredTime), AppTheme.secondary),
+                            ],
+                            if (req.visitAt != null && req.visitAt!.isNotEmpty) ...[
+                              const SizedBox(height: 12),
+                              _buildInfoRow(Icons.event_available_rounded, 'موعد الزيارة المعتمد:', DateHelper.formatDateTime(req.visitAt), AppTheme.success),
+                            ],
+                            if (req.quoteDecidedAt != null && req.quoteDecidedAt!.isNotEmpty) ...[
+                              const SizedBox(height: 12),
+                              _buildInfoRow(Icons.verified_rounded, 'توقيت الاعتماد والموافقة:', DateHelper.formatDateTime(req.quoteDecidedAt), AppTheme.success),
+                            ],
                             if (req.budget != null) ...[
                               const SizedBox(height: 12),
                               _buildInfoRow(Icons.payments_outlined, 'الميزانية المقترحة:', CurrencyHelper.format(req.budget), Colors.teal),

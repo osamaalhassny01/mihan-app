@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../config/app_theme.dart';
 import '../../config/currency_helper.dart';
+import '../../config/date_helper.dart';
 import '../../controllers/provider_controller.dart';
 import '../widgets/presentation_widgets.dart';
 import 'provider_request_detail_view.dart';
@@ -182,9 +183,42 @@ class _ProviderRequestsViewState extends State<ProviderRequestsView> {
                                         const Spacer(),
                                         if (req.budget != null)
                                           Text(
-                                            CurrencyHelper.format(req.budget),
+                                            '${CurrencyHelper.format(req.budget)} ر.ي',
                                             style: const TextStyle(fontWeight: FontWeight.bold, color: AppTheme.secondary),
                                           ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Row(
+                                      children: [
+                                        const Icon(Icons.access_time_rounded, size: 13, color: AppTheme.textSecondary),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          DateHelper.formatRelative(req.createdAt),
+                                          style: const TextStyle(fontSize: 11.5, color: AppTheme.textSecondary),
+                                        ),
+                                        if (req.preferredDate != null || req.preferredTime != null) ...[
+                                          const Spacer(),
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                            decoration: BoxDecoration(
+                                              color: AppTheme.primary.withValues(alpha: 0.08),
+                                              borderRadius: BorderRadius.circular(8),
+                                              border: Border.all(color: AppTheme.primary.withValues(alpha: 0.2)),
+                                            ),
+                                            child: Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                const Icon(Icons.event_note_rounded, size: 12, color: AppTheme.primary),
+                                                const SizedBox(width: 4),
+                                                Text(
+                                                  DateHelper.formatSchedule(req.preferredDate, req.preferredTime),
+                                                  style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.primary),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
                                       ],
                                     ),
                                     const Divider(height: 20),

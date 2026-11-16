@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../config/app_theme.dart';
 import '../../config/currency_helper.dart';
+import '../../config/date_helper.dart';
 import '../../services/api_service.dart';
 import 'presentation_widgets.dart';
 
@@ -665,6 +666,26 @@ class _TrackingSheetContentState extends State<_TrackingSheetContent> {
                               const Divider(height: 16),
                               _buildInfoRow('المنطقة', _request?['location_name_ar'] ?? _request?['location_name'] ?? '-', icon: Icons.location_on_outlined),
                             ],
+                            const Divider(height: 16),
+                            _buildInfoRow('تاريخ ووقت الإنشاء', DateHelper.formatDateTime(_request?['created_at']), icon: Icons.access_time_rounded),
+                            if (_request?['preferred_date'] != null || _request?['preferred_time'] != null) ...[
+                              const Divider(height: 16),
+                              _buildInfoRow(
+                                'موعد الزيارة المطلوب',
+                                DateHelper.formatSchedule(_request?['preferred_date'], _request?['preferred_time']),
+                                icon: Icons.calendar_month_outlined,
+                                valueColor: AppTheme.primary,
+                              ),
+                            ],
+                            if (_request?['visit_at'] != null && _request!['visit_at'].toString().isNotEmpty) ...[
+                              const Divider(height: 16),
+                              _buildInfoRow(
+                                'موعد الزيارة المعتمد',
+                                DateHelper.formatDateTime(_request!['visit_at']),
+                                icon: Icons.event_available_rounded,
+                                valueColor: AppTheme.success,
+                              ),
+                            ],
                           ],
                         ),
                       ),
@@ -723,7 +744,7 @@ class _TrackingSheetContentState extends State<_TrackingSheetContent> {
                                           style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
                                         ),
                                         Text(
-                                          'بواسطة: ${h['changed_by_name'] ?? 'النظام'} • ${h['changed_at'] ?? ''}',
+                                          'بواسطة: ${h['changed_by_name'] ?? 'النظام'} • ${DateHelper.formatDateTime(h['changed_at'])}',
                                           style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary),
                                         ),
                                       ],
@@ -1089,6 +1110,41 @@ class ManagementRequestCard extends StatelessWidget {
                         )
                       else
                         const Text('غير محدد بعد', style: TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+
+                  // Timing & Schedule row
+                  Row(
+                    children: [
+                      const Icon(Icons.access_time_rounded, size: 13, color: AppTheme.textSecondary),
+                      const SizedBox(width: 4),
+                      Text(
+                        DateHelper.formatRelative(request['created_at']),
+                        style: const TextStyle(fontSize: 11.5, color: AppTheme.textSecondary),
+                      ),
+                      if (request['preferred_date'] != null || request['preferred_time'] != null) ...[
+                        const Spacer(),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: AppTheme.primary.withValues(alpha: 0.08),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: AppTheme.primary.withValues(alpha: 0.2)),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.event_note_rounded, size: 12, color: AppTheme.primary),
+                              const SizedBox(width: 4),
+                              Text(
+                                DateHelper.formatSchedule(request['preferred_date'], request['preferred_time']),
+                                style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.primary),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 ],

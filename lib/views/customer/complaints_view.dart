@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../config/app_theme.dart';
+import '../../config/date_helper.dart';
 import '../../services/api_service.dart';
 import '../widgets/presentation_widgets.dart';
 
@@ -195,7 +196,7 @@ class _ComplaintsViewState extends State<ComplaintsView> {
                   ],
                 ),
                 Text(
-                  'رقم الشكوى: ${comp['complaint_number'] ?? "-"} • التاريخ: ${comp['created_at'] ?? ""}',
+                  'رقم الشكوى: ${comp['complaint_number'] ?? "-"} • ${DateHelper.formatDateTime(comp['created_at'])}',
                   style: const TextStyle(fontSize: 11.5, color: AppTheme.textSecondary),
                 ),
                 const Divider(height: 16),

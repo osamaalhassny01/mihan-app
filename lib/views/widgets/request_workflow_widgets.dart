@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../config/app_theme.dart';
 import '../../config/currency_helper.dart';
+import '../../config/date_helper.dart';
 import '../../controllers/customer_controller.dart';
 import '../../controllers/provider_controller.dart';
 import '../../models/request_and_provider_models.dart';
@@ -221,7 +222,16 @@ class ServiceWorkflowPanel extends StatelessWidget {
               if (req.visitAt != null)
                 Padding(
                     padding: const EdgeInsets.only(top: 12),
-                    child: Text('موعد الزيارة: ${req.visitAt}')),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.event_available_rounded, size: 16, color: AppTheme.primary),
+                        const SizedBox(width: 6),
+                        Text(
+                          'موعد الزيارة المقترح: ${DateHelper.formatDateTime(req.visitAt)}',
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                        ),
+                      ],
+                    )),
               const SizedBox(height: 10),
               Text(
                   switch (req.quoteStatus) {
@@ -468,7 +478,7 @@ class _QuoteDialogState extends State<_QuoteDialog> {
                           icon: const Icon(Icons.event_available_outlined),
                           label: Text(_visit == null
                               ? 'اقتراح موعد زيارة (اختياري)'
-                              : _visit.toString().substring(0, 16))),
+                              : DateHelper.formatDateTime(_visit))),
                       if (_visit != null)
                         TextButton(
                             onPressed: () => setState(() => _visit = null),
