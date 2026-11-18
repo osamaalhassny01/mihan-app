@@ -8,6 +8,7 @@ import '../../services/api_service.dart';
 import '../widgets/presentation_widgets.dart';
 import '../widgets/management_request_actions.dart';
 import '../auth/login_view.dart';
+import 'admin_decision_support_view.dart';
 
 class AdminMainView extends StatefulWidget {
   const AdminMainView({super.key});
@@ -276,6 +277,11 @@ class _AdminMainViewState extends State<AdminMainView> {
               label: 'لوحة القيادة',
             ),
             BottomNavigationBarItem(
+              icon: Icon(Icons.psychology_outlined),
+              activeIcon: Icon(Icons.psychology_rounded),
+              label: 'دعم القرار (AI)',
+            ),
+            BottomNavigationBarItem(
               icon: Icon(Icons.assignment_outlined),
               activeIcon: Icon(Icons.assignment_rounded),
               label: 'الطلبات',
@@ -328,6 +334,7 @@ class _AdminMainViewState extends State<AdminMainView> {
       index: _currentIndex,
       children: [
         _buildDashboardTab(user),
+        const AdminDecisionSupportView(),
         _buildRequestsTab(),
         _buildUsersTab(),
         _buildProfileTab(user),
@@ -485,6 +492,68 @@ class _AdminMainViewState extends State<AdminMainView> {
                 ],
               ),
             ),
+            const SizedBox(height: 18),
+
+            // AI Decision Support Hero Banner
+            InkWell(
+              onTap: () => setState(() => _currentIndex = 1),
+              borderRadius: BorderRadius.circular(20),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(18),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF042F2E), Color(0xFF0F766E)],
+                    begin: Alignment.topRight,
+                    end: Alignment.bottomLeft,
+                  ),
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF0F766E).withValues(alpha: 0.2),
+                      blurRadius: 14,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: const Icon(Icons.psychology_rounded, color: Colors.white, size: 26),
+                    ),
+                    const SizedBox(width: 14),
+                    const Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Text(
+                                'دعم اتخاذ القرار بالذكاء الاصطناعي',
+                                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+                              ),
+                              SizedBox(width: 6),
+                              Icon(Icons.auto_awesome, color: Colors.amber, size: 14),
+                            ],
+                          ),
+                          SizedBox(height: 3),
+                          Text(
+                            'كشف عجز المناطق • أداء المهنيين • تحليل الشكاوى',
+                            style: TextStyle(color: Colors.white70, fontSize: 11),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const Icon(Icons.arrow_forward_ios_rounded, color: Colors.white70, size: 14),
+                  ],
+                ),
+              ),
+            ),
             const SizedBox(height: 22),
 
             // Platform Metrics Grid
@@ -507,7 +576,7 @@ class _AdminMainViewState extends State<AdminMainView> {
                 Expanded(
                   child: InkWell(
                     borderRadius: BorderRadius.circular(16),
-                    onTap: () => setState(() => _currentIndex = 1),
+                    onTap: () => setState(() => _currentIndex = 2),
                     child: StatCard(
                       title: 'إجمالي الطلبات',
                       value: '${d?['requests_count'] ?? 0}',
