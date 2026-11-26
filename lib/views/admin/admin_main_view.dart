@@ -2,6 +2,7 @@ import '../notifications/notifications_view.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../config/app_theme.dart';
+import '../../config/api_config.dart';
 import '../../config/date_helper.dart';
 import '../../controllers/auth_controller.dart';
 import '../../services/api_service.dart';
@@ -772,13 +773,39 @@ class _AdminMainViewState extends State<AdminMainView> {
                                 const Spacer(),
                                 InkWell(
                                   onTap: () {
+                                    final resolvedUrl = certUrl.startsWith('http')
+                                        ? certUrl
+                                        : '${ApiConfig.baseUrl.replaceAll(RegExp(r'/+$'), '')}/${certUrl.replaceAll(RegExp(r'^/+'), '')}';
                                     showDialog(
                                       context: context,
                                       builder: (ctx) => AlertDialog(
+                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                                         title: const Text('شهادة / وثيقة المهني'),
-                                        content: certUrl.startsWith('http')
-                                            ? Image.network(certUrl, fit: BoxFit.contain, errorBuilder: (_, __, ___) => const Text('تعذر تحميل الصورة'))
-                                            : Text(certUrl),
+                                        content: SizedBox(
+                                          width: double.maxFinite,
+                                          child: Image.network(
+                                            resolvedUrl,
+                                            fit: BoxFit.contain,
+                                            loadingBuilder: (_, child, prog) => prog == null
+                                                ? child
+                                                : const SizedBox(height: 180, child: Center(child: CircularProgressIndicator())),
+                                            errorBuilder: (_, err, ___) => Padding(
+                                              padding: const EdgeInsets.all(16),
+                                              child: Column(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  const Icon(Icons.broken_image_rounded, size: 48, color: AppTheme.error),
+                                                  const SizedBox(height: 8),
+                                                  Text(
+                                                    'تعذر تحميل الصورة من الرابط:\n$resolvedUrl',
+                                                    textAlign: TextAlign.center,
+                                                    style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+                                        ),
                                         actions: [TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('إغلاق'))],
                                       ),
                                     );

@@ -193,13 +193,13 @@ class _ProviderApplicationViewState extends State<ProviderApplicationView> {
     setState(() => _isCheckingStatus = false);
   }
 
-  Future<void> _pickImageFromGallery() async {
+  Future<void> _pickImage(ImageSource source) async {
     try {
       final XFile? image = await _picker.pickImage(
-        source: ImageSource.gallery,
-        maxWidth: 1024,
-        maxHeight: 1024,
-        imageQuality: 75,
+        source: source,
+        maxWidth: 1200,
+        maxHeight: 1200,
+        imageQuality: 80,
       );
 
       if (image != null) {
@@ -212,10 +212,75 @@ class _ProviderApplicationViewState extends State<ProviderApplicationView> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('تعذر اختيار الصورة: $e'), backgroundColor: AppTheme.error),
+          SnackBar(content: Text('تعذر اختيار/التقاط الصورة: $e'), backgroundColor: AppTheme.error),
         );
       }
     }
+  }
+
+  void _showImageSourceOptions() {
+    showModalBottomSheet<void>(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const Text(
+                'إرفاق إثبات المهنة أو الشهادة',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'اختر طريقة تصوير أو رفع وثيقة إثبات المهنة والاعتماد',
+                style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 20),
+              ListTile(
+                leading: Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: AppTheme.primary.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(Icons.camera_alt_rounded, color: AppTheme.primary),
+                ),
+                title: const Text('التقاط صورة بالكاميرا 📷', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                subtitle: const Text('تصوير الهوية أو وثيقة المهنة مباشرة عبر كاميرا الجوال', style: TextStyle(fontSize: 11)),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _pickImage(ImageSource.camera);
+                },
+              ),
+              const SizedBox(height: 8),
+              ListTile(
+                leading: Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: AppTheme.secondary.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(Icons.photo_library_rounded, color: AppTheme.secondary),
+                ),
+                title: const Text('اختيار من معرض الصور 🖼️', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                subtitle: const Text('اختيار صورة محفوظة في ملفات أو معرض الجهاز', style: TextStyle(fontSize: 11)),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _pickImage(ImageSource.gallery);
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   Future<void> _submitApplication() async {
@@ -500,18 +565,18 @@ class _ProviderApplicationViewState extends State<ProviderApplicationView> {
                   ),
                   const SizedBox(height: 16),
 
-                  // Image from Gallery Picker Box
+                  // Image Picker Box (Camera or Gallery)
                   const Row(
                     children: [
-                      Icon(Icons.photo_library_outlined, size: 18, color: AppTheme.primary),
+                      Icon(Icons.add_a_photo_outlined, size: 18, color: AppTheme.primary),
                       SizedBox(width: 6),
-                      Text('إثبات المهنة / الشهادة من المعرض *', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5)),
+                      Text('إثبات المهنة / الشهادة (كاميرا أو معرض) *', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5)),
                     ],
                   ),
                   const SizedBox(height: 8),
                   InkWell(
                     borderRadius: BorderRadius.circular(16),
-                    onTap: _pickImageFromGallery,
+                    onTap: _showImageSourceOptions,
                     child: Container(
                       width: double.infinity,
                       padding: const EdgeInsets.all(16),
@@ -535,9 +600,9 @@ class _ProviderApplicationViewState extends State<ProviderApplicationView> {
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      Text('تم اختيار الصورة بنجاح ✅', style: TextStyle(fontWeight: FontWeight.bold, color: AppTheme.success, fontSize: 13)),
+                                      Text('تم التقاط / اختيار الصورة بنجاح ✅', style: TextStyle(fontWeight: FontWeight.bold, color: AppTheme.success, fontSize: 13)),
                                       SizedBox(height: 2),
-                                      Text('اضغط لتغيير الصورة', style: TextStyle(color: AppTheme.textSecondary, fontSize: 11)),
+                                      Text('اضغط لتغيير الصورة (كاميرا أو معرض)', style: TextStyle(color: AppTheme.textSecondary, fontSize: 11)),
                                     ],
                                   ),
                                 ),
@@ -554,20 +619,20 @@ class _ProviderApplicationViewState extends State<ProviderApplicationView> {
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
                                           const Text('يوجد وثيقة مرفوعة مسبقاً', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                                          Text('اضغط لاستبدالها بصورة جديدة من المعرض', style: TextStyle(color: Colors.grey.shade600, fontSize: 11)),
+                                          Text('اضغط لاستبدالها عبر الكاميرا أو المعرض', style: TextStyle(color: Colors.grey.shade600, fontSize: 11)),
                                         ],
                                       ),
                                     ),
-                                    const Icon(Icons.photo_library_outlined, color: AppTheme.secondary),
+                                    const Icon(Icons.camera_alt_outlined, color: AppTheme.secondary),
                                   ],
                                 )
                               : const Column(
                                   children: [
-                                    Icon(Icons.add_photo_alternate_outlined, size: 42, color: AppTheme.secondary),
+                                    Icon(Icons.add_a_photo_outlined, size: 42, color: AppTheme.secondary),
                                     SizedBox(height: 8),
-                                    Text('اضغط لاختيار صورة الشهادة أو الرخصة من المعرض', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppTheme.textPrimary)),
+                                    Text('اضغط لالتقاط صورة بالكاميرا أو اختيارها من المعرض', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppTheme.textPrimary)),
                                     SizedBox(height: 2),
-                                    Text('يدعم صيغ JPG و PNG', style: TextStyle(fontSize: 11, color: AppTheme.textSecondary)),
+                                    Text('يدعم الكاميرا المباشرة وصيغ JPG و PNG', style: TextStyle(fontSize: 11, color: AppTheme.textSecondary)),
                                   ],
                                 ),
                     ),
