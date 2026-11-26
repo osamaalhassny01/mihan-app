@@ -145,7 +145,18 @@ class _CreateRequestViewState extends State<CreateRequestView> {
         preferredTime: _scheduled ? '$_timeText:00' : null,
         budget: _budgetValue,
         notes: _address.text.trim());
-    if (!mounted || !success) return;
+    if (!mounted) return;
+    if (!success) {
+      final msg = controller.errorMessage ?? 'تعذر إنشاء الطلب، يرجى مراجعة البيانات.';
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(msg),
+          backgroundColor: AppTheme.error,
+          duration: const Duration(seconds: 4),
+        ),
+      );
+      return;
+    }
     final id = controller.createdRequestId;
     if (id != null) {
       Navigator.of(context).pushReplacement(MaterialPageRoute<void>(
